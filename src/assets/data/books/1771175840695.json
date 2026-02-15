@@ -14,7 +14,13 @@
     {
       "id": "nq9d3i",
       "pageNumber": 1,
-      "content": []
+      "content": [
+        {
+          "id": "i2oxqa",
+          "type": "heading",
+          "content": "1"
+        }
+      ]
     }
   ]
 }
