@@ -5,10 +5,16 @@
   "genre": "Romance",
   "description": "My life",
   "coverImage": "https://picsum.photos/seed/1771175840695/400/600",
-  "pageCount": 0,
+  "pageCount": 1,
   "viewCount": 0,
   "downloadCount": 0,
   "createdAt": "2026-02-15T17:17:20.695Z",
   "updatedAt": "2026-02-15T17:17:20.695Z",
-  "pages": []
+  "pages": [
+    {
+      "id": "nq9d3i",
+      "pageNumber": 1,
+      "content": []
+    }
+  ]
 }
