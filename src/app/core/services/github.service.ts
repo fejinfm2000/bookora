@@ -3,10 +3,11 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, from, of, throwError } from 'rxjs';
 import { map, catchError, switchMap } from 'rxjs/operators';
 
-// CONFIGURATION - TODO: Move to environment/config or user input
-const GITHUB_TOKEN = ''; // User needs to provide this
-const REPO_OWNER = '';   // User needs to provide this
-const REPO_NAME = '';    // User needs to provide this
+// CONFIGURATION
+// To run locally: Fill these in or use a local environment file. Do NOT commit secrets.
+const GITHUB_TOKEN = '';
+const REPO_OWNER = 'fejinfm2000';
+const REPO_NAME = 'bookora';
 
 @Injectable({
     providedIn: 'root'
