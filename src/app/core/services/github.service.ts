@@ -17,6 +17,17 @@ export class GithubService {
     private http = inject(HttpClient);
     private apiUrl = 'https://api.github.com';
 
+    constructor() {
+        console.log('GithubService initialized. Configured:', this.isConfigured());
+        if (!this.isConfigured()) {
+            console.warn('GitHub Configuration Missing:', {
+                token: !!GITHUB_TOKEN,
+                owner: !!REPO_OWNER,
+                repo: !!REPO_NAME
+            });
+        }
+    }
+
     private get headers(): HttpHeaders {
         return new HttpHeaders({
             'Authorization': `Bearer ${GITHUB_TOKEN}`,
@@ -58,6 +69,7 @@ export class GithubService {
                 }
             }),
             catchError(error => {
+                console.error(`GitHub getFile Error [${path}]:`, error.status, error.message);
                 if (error.status === 404) {
                     return of(null); // File not found is null, not error
                 }
@@ -88,7 +100,12 @@ export class GithubService {
             body.sha = sha;
         }
 
-        return this.http.put(url, body, { headers: this.headers });
+        return this.http.put(url, body, { headers: this.headers }).pipe(
+            catchError(error => {
+                console.error(`GitHub saveFile Error [${path}]:`, error.status, error.message);
+                return throwError(() => error);
+            })
+        );
     }
 
     /**

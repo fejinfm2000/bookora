@@ -81,7 +81,7 @@ export class AuthService {
                 return true;
             }),
             catchError(err => {
-                console.error('Registration error', err);
+                console.error('Registration error details:', err);
                 return of(false);
             })
         );
