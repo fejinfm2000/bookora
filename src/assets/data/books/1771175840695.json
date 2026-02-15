@@ -5,7 +5,7 @@
   "genre": "Romance",
   "description": "My life",
   "coverImage": "https://picsum.photos/seed/1771175840695/400/600",
-  "pageCount": 1,
+  "pageCount": 2,
   "viewCount": 0,
   "downloadCount": 0,
   "createdAt": "2026-02-15T17:17:20.695Z",
@@ -19,6 +19,17 @@
           "id": "i2oxqa",
           "type": "heading",
           "content": "1"
+        }
+      ]
+    },
+    {
+      "id": "2972q17",
+      "pageNumber": 2,
+      "content": [
+        {
+          "id": "kh92bm",
+          "type": "heading",
+          "content": ""
         }
       ]
     }
