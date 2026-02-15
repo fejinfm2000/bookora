@@ -2,7 +2,7 @@ import { Injectable, signal, computed, inject } from '@angular/core';
 import { Book } from '../../shared/models/book.model';
 import { GithubService } from './github.service';
 import { AuthService } from '../auth/auth.service';
-import { forkJoin, of } from 'rxjs';
+import { Observable, forkJoin, of } from 'rxjs';
 import { catchError, map, switchMap, tap } from 'rxjs/operators';
 
 @Injectable({
@@ -31,7 +31,7 @@ export class DataService {
 
     // Computed signal for filtered and sorted books
     filteredBooks = computed(() => {
-        let result = this._books().filter(book => {
+        let result = this._books().filter((book: Book) => {
             const matchesSearch = book.title.toLowerCase().includes(this.searchQuery().toLowerCase()) ||
                 book.author.toLowerCase().includes(this.searchQuery().toLowerCase());
             const matchesGenre = this.selectedGenre() === 'All' || book.genre === this.selectedGenre();
@@ -39,7 +39,7 @@ export class DataService {
         });
 
         // Sorting logic
-        return result.sort((a, b) => {
+        return result.sort((a: Book, b: Book) => {
             if (this.sortBy() === 'newest') return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
             if (this.sortBy() === 'mostViewed') return b.viewCount - a.viewCount;
             if (this.sortBy() === 'mostDownloaded') return b.downloadCount - a.downloadCount;
@@ -51,18 +51,18 @@ export class DataService {
     myBooks = computed(() => {
         const user = this.auth.currentUser();
         if (!user || !user.created_books) return [];
-        return this._books().filter(b => user.created_books.includes(b.id));
+        return this._books().filter((b: Book) => user.created_books.includes(b.id));
     });
 
     // User's Favorites
     favoriteBooks = computed(() => {
         const user = this.auth.currentUser();
         if (!user || !user.favorite_books) return [];
-        return this._books().filter(b => user.favorite_books.includes(b.id));
+        return this._books().filter((b: Book) => user.favorite_books.includes(b.id));
     });
 
     getGenres = computed(() => {
-        const genres = this._books().map(b => b.genre);
+        const genres = this._books().map((b: Book) => b.genre);
         return ['All', ...new Set(genres)];
     });
 
@@ -73,7 +73,7 @@ export class DataService {
         if (!this.github.isConfigured()) return;
 
         this.github.getFile<Book[]>(this.BOOKS_INDEX_PATH).subscribe({
-            next: (fileData) => {
+            next: (fileData: any) => {
                 if (fileData) {
                     this._books.set(fileData.content);
                 } else {
@@ -89,7 +89,7 @@ export class DataService {
      * Get a single book (from cache or fetch if detailed content needed)
      */
     getBook(id: string): Book | undefined {
-        return this._books().find(b => b.id === id);
+        return this._books().find((b: Book) => b.id === id);
     }
 
     /**
@@ -98,11 +98,11 @@ export class DataService {
     fetchBookDetails(id: string): Observable<Book | undefined> {
         const path = `${this.BOOKS_DIR_PATH}${id}.json`;
         return this.github.getFile<Book>(path).pipe(
-            map(data => {
+            map((data: any) => {
                 const book = data?.content;
                 if (book) {
                     // Update cache with full book details
-                    this._books.update(books => books.map(b => b.id === id ? book : b));
+                    this._books.update((books: Book[]) => books.map((b: Book) => b.id === id ? book : b));
                 }
                 return book;
             })
@@ -145,13 +145,13 @@ export class DataService {
      * Update a book
      */
     updateBook(book: Book) {
-        const updatedBooks = this._books().map(b => b.id === book.id ? book : b);
+        const updatedBooks = this._books().map((b: Book) => b.id === book.id ? book : b);
         this._books.set(updatedBooks);
 
         // 1. Update individual file
         const bookPath = `${this.BOOKS_DIR_PATH}${book.id}.json`;
         this.github.getFile<Book>(bookPath).pipe(
-            switchMap(fileData => {
+            switchMap((fileData: any) => {
                 const sha = fileData ? fileData.sha : null;
                 return this.github.saveFile(bookPath, book, sha, `Update book ${book.title}`);
             }),
@@ -175,7 +175,7 @@ export class DataService {
 
         // 1. Delete file
         this.github.getFile<Book>(bookPath).pipe(
-            switchMap(fileData => {
+            switchMap((fileData: any) => {
                 if (!fileData) return of(true);
                 return this.github.deleteFile(bookPath, fileData.sha, `Delete book ${book.title}`);
             }),
@@ -186,7 +186,7 @@ export class DataService {
                 if (user) {
                     const updatedUser = {
                         ...user,
-                        created_books: (user.created_books || []).filter(bib => bib !== id)
+                        created_books: (user.created_books || []).filter((bib: string) => bib !== id)
                     };
                     return this.auth.updateUser(updatedUser);
                 }
@@ -207,7 +207,7 @@ export class DataService {
         const isFav = user.favorite_books?.includes(bookId);
         let newFavs;
         if (isFav) {
-            newFavs = user.favorite_books.filter(id => id !== bookId);
+            newFavs = user.favorite_books.filter((id: string) => id !== bookId);
         } else {
             newFavs = [...(user.favorite_books || []), bookId];
         }
@@ -219,10 +219,10 @@ export class DataService {
     private saveBooksIndex(books: Book[]) {
         // Fetch index SHA first
         return this.github.getFile<Book[]>(this.BOOKS_INDEX_PATH).pipe(
-            switchMap(fileData => {
+            switchMap((fileData: any) => {
                 const sha = fileData ? fileData.sha : null;
                 // Exclude heavy content (pages) from index
-                const indexContent = books.map(b => ({ ...b, pages: [] }));
+                const indexContent = books.map((b: Book) => ({ ...b, pages: [] }));
                 return this.github.saveFile(this.BOOKS_INDEX_PATH, indexContent, sha, 'Update books index');
             })
         );

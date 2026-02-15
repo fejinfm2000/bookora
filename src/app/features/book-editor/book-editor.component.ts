@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { EditorService } from '../../core/services/editor.service';
 import { DataService } from '../../core/services/data.service';
+import { Book } from '../../shared/models/book.model';
 
 @Component({
   selector: 'app-book-editor',
@@ -162,7 +163,7 @@ export class BookEditorComponent implements OnInit {
 
       // Then fetch full details (including pages) from GitHub
       this.dataService.fetchBookDetails(bookId).subscribe({
-        next: (fullBook) => {
+        next: (fullBook: Book | undefined) => {
           if (fullBook) {
             this.editorService.setBook(fullBook);
           } else if (!cachedBook) {
