@@ -1,10 +1,13 @@
-import { Injectable, signal, computed, effect } from '@angular/core';
+import { Injectable, signal, computed, effect, inject } from '@angular/core';
 import { Book, BookPage, PageBlock } from '../../shared/models/book.model';
+import { DataService } from './data.service';
 
 @Injectable({
     providedIn: 'root'
 })
 export class EditorService {
+    private dataService = inject(DataService);
+
     // Current book being edited
     currentBook = signal<Book | null>(null);
 
@@ -115,8 +118,12 @@ export class EditorService {
     }
 
     saveChanges() {
-        if (!this.currentBook()) return;
-        console.log('Autosaving changes...', this.currentBook());
+        const book = this.currentBook();
+        if (!book) return;
+
+        console.log('Autosaving changes to GitHub...', book.title);
+        this.dataService.updateBook(book);
+
         this.lastSaved.set(new Date().toLocaleTimeString());
         this.isDirty.set(false);
     }

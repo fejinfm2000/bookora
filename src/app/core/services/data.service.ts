@@ -95,10 +95,17 @@ export class DataService {
     /**
      * Fetch full book details (including content pages)
      */
-    fetchBookDetails(id: string) {
+    fetchBookDetails(id: string): Observable<Book | undefined> {
         const path = `${this.BOOKS_DIR_PATH}${id}.json`;
         return this.github.getFile<Book>(path).pipe(
-            map(data => data?.content)
+            map(data => {
+                const book = data?.content;
+                if (book) {
+                    // Update cache with full book details
+                    this._books.update(books => books.map(b => b.id === id ? book : b));
+                }
+                return book;
+            })
         );
     }
 

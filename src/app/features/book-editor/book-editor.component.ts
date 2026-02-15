@@ -154,12 +154,23 @@ export class BookEditorComponent implements OnInit {
   ngOnInit() {
     const bookId = this.route.snapshot.paramMap.get('id');
     if (bookId) {
-      const book = this.dataService.getBook(bookId);
-      if (book) {
-        this.editorService.setBook(book);
-      } else {
-        this.router.navigate(['/library']);
+      // First try to set what we have in cache
+      const cachedBook = this.dataService.getBook(bookId);
+      if (cachedBook) {
+        this.editorService.setBook(cachedBook);
       }
+
+      // Then fetch full details (including pages) from GitHub
+      this.dataService.fetchBookDetails(bookId).subscribe({
+        next: (fullBook) => {
+          if (fullBook) {
+            this.editorService.setBook(fullBook);
+          } else if (!cachedBook) {
+            this.router.navigate(['/library']);
+          }
+        },
+        error: () => this.router.navigate(['/library'])
+      });
     }
   }
 
