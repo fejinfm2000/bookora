@@ -32,8 +32,8 @@ import { AuthService } from '../../core/auth/auth.service';
         <!-- Login Form Tile -->
         <div class="login-tile">
           <div class="form-container">
-            <h2 class="form-title">Welcome Back</h2>
-            <p class="form-subtitle">Sign in to continue your journey</p>
+            <h2 class="form-title">{{ isLogin() ? 'Welcome Back' : 'Join Bookora' }}</h2>
+            <p class="form-subtitle">{{ isLogin() ? 'Sign in to continue your journey' : 'Start your premium reading experience' }}</p>
 
             <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
               <!-- Email Field -->
@@ -87,9 +87,9 @@ import { AuthService } from '../../core/auth/auth.service';
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  <span>Signing In...</span>
+                  <span>{{ isLogin() ? 'Signing In...' : 'Creating Account...' }}</span>
                 } @else {
-                  <span>Sign In</span>
+                  <span>{{ isLogin() ? 'Sign In' : 'Sign Up' }}</span>
                   <svg xmlns="http://www.w3.org/2000/svg" class="icon-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                   </svg>
@@ -98,7 +98,10 @@ import { AuthService } from '../../core/auth/auth.service';
 
               <!-- Sign Up Link -->
               <p class="signup-text-inline">
-                New to Bookora? <a href="#" class="signup-link">Create account</a>
+                {{ isLogin() ? 'New to Bookora?' : 'Already have an account?' }} 
+                <a href="#" (click)="toggleMode($event)" class="signup-link">
+                  {{ isLogin() ? 'Create account' : 'Sign In' }}
+                </a>
               </p>
 
               <!-- Divider -->
@@ -139,25 +142,47 @@ export class LoginComponent {
 
   showPassword = signal(false);
   isLoading = signal(false);
+  isLogin = signal(true);
 
   loginForm = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(6)]]
   });
 
+  toggleMode(event: Event) {
+    event.preventDefault();
+    this.isLogin.set(!this.isLogin());
+  }
+
   onSubmit() {
     if (this.loginForm.valid) {
       this.isLoading.set(true);
       const { email, password } = this.loginForm.value;
 
-      // Simulate API call
-      setTimeout(() => {
-        const success = this.authService.login(email!, password!);
-        this.isLoading.set(false);
-        if (success) {
-          this.router.navigate(['/library']);
+      const authObs = this.isLogin()
+        ? this.authService.login(email!, password!)
+        : this.authService.register(email!, password!);
+
+      authObs.subscribe({
+        next: (success) => {
+          this.isLoading.set(false);
+          if (success) {
+            if (this.isLogin()) {
+              this.router.navigate(['/library']);
+            } else {
+              alert('Account created! Please login.');
+              this.isLogin.set(true);
+            }
+          } else {
+            alert(this.isLogin() ? 'Invalid credentials' : 'Registration failed (user might exist)');
+          }
+        },
+        error: (err) => {
+          this.isLoading.set(false);
+          console.error('Auth error:', err);
+          alert('An error occurred during authentication.');
         }
-      }, 1500);
+      });
     }
   }
 }
