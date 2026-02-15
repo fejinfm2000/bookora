@@ -3,8 +3,9 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
-    "build": "ng build",
+    "config": "node scripts/set-env.js",
+    "start": "npm run config && ng serve",
+    "build": "npm run config && ng build",
     "watch": "ng build --watch --configuration development",
     "test": "vitest",
     "test:ui": "vitest --ui"
