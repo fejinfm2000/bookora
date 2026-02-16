@@ -2,7 +2,9 @@
   "email": "fejinfm2000@gmail.com",
   "password": "fejinfm",
   "username": "fejinfm2000",
-  "favorite_books": [],
+  "favorite_books": [
+    "1771175840695"
+  ],
   "created_books": [
     "1771175840695",
     "1771244181134"
