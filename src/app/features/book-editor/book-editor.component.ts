@@ -13,15 +13,16 @@ import { Book } from '../../shared/models/book.model';
   template: `
     <div class="editor-container">
       <!-- Back button for mobile/header -->
-      <div class="editor-mobile-header">
-        <button (click)="router.navigate(['/library'])" class="back-btn-editor">
+      <div class="editor-mobile-header mobile-only">
+        <button (click)="router.navigate(['/library'])" class="back-btn-premium">
           <svg xmlns="http://www.w3.org/2000/svg" class="icon-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
           <span>Back</span>
         </button>
-        <div class="header-status">
-           <span [class.status-saved]="!editorService.isDirty()">
+        <div class="header-status" [class.status-saved]="!editorService.isDirty()" [class.status-saving]="editorService.isDirty()">
+           <div class="status-dot"></div>
+           <span>
             {{ editorService.isDirty() ? 'Saving...' : 'Saved' }}
           </span>
         </div>
@@ -84,10 +85,13 @@ import { Book } from '../../shared/models/book.model';
             
             <!-- Mobile Toggle Sidebar -->
             <button (click)="isSidebarHidden = !isSidebarHidden" class="btn-toggle-pages mobile-only">
-               {{ isSidebarHidden ? 'Show Pages' : 'Hide Pages' }}
+               <svg xmlns="http://www.w3.org/2000/svg" class="icon-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
+               </svg>
+               <span>{{ isSidebarHidden ? 'Show Pages' : 'Hide Pages' }}</span>
             </button>
 
-            <div class="block-actions header-actions">
+            <div class="block-actions header-actions desktop-only">
               <button (click)="editorService.addBlock('heading')" class="btn-block-action">
                 <svg xmlns="http://www.w3.org/2000/svg" class="icon-xs" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -166,9 +170,21 @@ import { Book } from '../../shared/models/book.model';
 
         <!-- Floating Add actions for mobile -->
         <div class="mobile-add-actions mobile-only">
-           <button (click)="editorService.addBlock('heading')">H</button>
-           <button (click)="editorService.addBlock('paragraph')">T</button>
-           <button (click)="editorService.addBlock('image')">I</button>
+           <button (click)="editorService.addBlock('heading')" title="Add Heading">
+             <svg xmlns="http://www.w3.org/2000/svg" class="icon-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+             </svg>
+           </button>
+           <button (click)="editorService.addBlock('paragraph')" title="Add Text">
+             <svg xmlns="http://www.w3.org/2000/svg" class="icon-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
+             </svg>
+           </button>
+           <button (click)="editorService.addBlock('image')" title="Add Image">
+             <svg xmlns="http://www.w3.org/2000/svg" class="icon-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+             </svg>
+           </button>
         </div>
       </main>
     </div>

@@ -14,7 +14,7 @@ import { Book } from '../../shared/models/book.model';
       <div class="reader-header">
         <button 
           (click)="router.navigate(['/library'])"
-          class="reader-back-btn"
+          class="back-btn-premium"
         >
           <svg xmlns="http://www.w3.org/2000/svg" class="icon-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
