@@ -24,7 +24,7 @@ export class AuthService {
     constructor() {
         // Try to restore session from localStorage if needed, 
         // but for now we'll start fresh or maybe store email in localstorage
-        const savedEmail = localStorage.getItem('bookora_user_email');
+        const savedEmail = sessionStorage.getItem('bookora_user_email');
         if (savedEmail) {
             // Potentially re-fetch user data here
             // this.loadUser(savedEmail);
@@ -47,7 +47,7 @@ export class AuthService {
 
                 if (user.password === password) {
                     this.currentUser.set(user);
-                    localStorage.setItem('bookora_user_email', email);
+                    sessionStorage.setItem('bookora_user_email', email);
                     return true;
                 }
                 return false;
@@ -77,7 +77,7 @@ export class AuthService {
         return this.githubService.saveFile(path, newUser, null, `Create user ${email}`).pipe(
             map(() => {
                 this.currentUser.set(newUser);
-                localStorage.setItem('bookora_user_email', email);
+                sessionStorage.setItem('bookora_user_email', email);
                 return true;
             }),
             catchError(err => {
@@ -113,7 +113,7 @@ export class AuthService {
 
     logout() {
         this.currentUser.set(null);
-        localStorage.removeItem('bookora_user_email');
+        sessionStorage.removeItem('bookora_user_email');
     }
 
     private getEmailFilename(email: string): string {

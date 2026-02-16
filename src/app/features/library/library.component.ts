@@ -2,6 +2,7 @@ import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { DataService } from '../../core/services/data.service';
+import { Book } from '../../shared/models/book.model';
 import { SkeletonComponent } from '../../shared/components/skeleton/skeleton.component';
 
 @Component({
@@ -101,6 +102,18 @@ import { SkeletonComponent } from '../../shared/components/skeleton/skeleton.com
                 <div class="book-cover">
                   <img [src]="book.coverImage" [alt]="book.title" />
                   <div class="book-overlay">
+                    <div class="overlay-actions-top">
+                      <button 
+                        (click)="toggleFavorite(book.id, $event)" 
+                        class="favorite-btn" 
+                        [class.is-favorite]="isFavorite(book.id)"
+                        title="Add to Favorites"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon-sm" [attr.fill]="isFavorite(book.id) ? 'currentColor' : 'none'" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.175 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.382-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                        </svg>
+                      </button>
+                    </div>
                     <span class="genre-badge">{{ book.genre }}</span>
                     <button (click)="router.navigate(['/read', book.id])" class="overlay-btn primary">
                       Open Reader
@@ -164,5 +177,14 @@ export class LibraryComponent implements OnInit {
   onSortChange(event: Event) {
     const value = (event.target as HTMLSelectElement).value;
     this.dataService.sortBy.set(value);
+  }
+
+  isFavorite(bookId: string): boolean {
+    return this.dataService.favoriteBooks().some((b: Book) => b.id === bookId);
+  }
+
+  toggleFavorite(bookId: string, event: Event) {
+    event.stopPropagation();
+    this.dataService.toggleFavorite(bookId);
   }
 }

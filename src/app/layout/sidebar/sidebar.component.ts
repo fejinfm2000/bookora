@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { RouterLink, RouterLinkActive, Router } from '@angular/router';
+import { AuthService } from '../../core/auth/auth.service';
 
 @Component({
   selector: 'app-sidebar',
@@ -28,11 +29,23 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
           <p class="upgrade-text">Get unlimited book creation and PDF imports.</p>
           <button class="upgrade-btn">Learn More</button>
         </div>
+
+        <button (click)="logout()" class="nav-link logout-btn" style="margin-top: 1rem; width: 100%; border: none; background: transparent; cursor: pointer;">
+          <span class="nav-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+          </span>
+          <span class="nav-label">Sign Out</span>
+        </button>
       </div>
     </aside>
   `
 })
 export class SidebarComponent {
+  authService = inject(AuthService);
+  router = inject(Router);
+
   navItems = [
     {
       label: 'All Books',
@@ -59,4 +72,9 @@ export class SidebarComponent {
       exact: false
     }
   ];
+
+  logout() {
+    this.authService.logout();
+    this.router.navigate(['/login']);
+  }
 }

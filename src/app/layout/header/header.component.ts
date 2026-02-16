@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ThemeService } from '../../core/services/theme.service';
+import { AuthService } from '../../core/auth/auth.service';
 
 @Component({
   selector: 'app-header',
@@ -41,7 +42,9 @@ import { ThemeService } from '../../core/services/theme.service';
         </button>
         
         <div class="user-profile">
-          <div class="user-avatar">GU</div>
+          <div class="user-avatar">
+            {{ getUserInitials() }}
+          </div>
         </div>
       </div>
     </header>
@@ -49,4 +52,12 @@ import { ThemeService } from '../../core/services/theme.service';
 })
 export class HeaderComponent {
   themeService = inject(ThemeService);
+  authService = inject(AuthService);
+
+  getUserInitials(): string {
+    const user = this.authService.currentUser();
+    if (!user) return 'GU';
+    const name = user.username || user.email;
+    return name.substring(0, 2).toUpperCase();
+  }
 }
