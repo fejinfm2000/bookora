@@ -18,15 +18,29 @@ import { jsPDF } from 'jspdf';
           <h2 class="page-title">Explore Community</h2>
           <p class="page-subtitle">See what others are reading and sharing.</p>
         </div>
-        <button (click)="router.navigate(['/feed'])" class="btn-create">
-          <svg xmlns="http://www.w3.org/2000/svg" class="icon-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-          </svg>
-          Share Post
-        </button>
+        <div class="header-actions" style="display: flex; gap: 0.75rem;">
+          <button (click)="socialService.refreshFeed()" class="btn-icon-small" [class.spinning]="socialService.loading()" title="Refresh feed">
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+          </button>
+          <button (click)="router.navigate(['/feed'])" class="btn-create">
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Share Post
+          </button>
+        </div>
       </div>
 
       <div class="explore-feed">
+         @if (socialService.loading() && socialService.feed().length === 0) {
+           <div class="loading-state" style="text-align: center; padding: 3rem;">
+              <div class="spinner-large" style="margin-bottom: 1rem;"></div>
+              <p>Loading community feed...</p>
+           </div>
+         }
+         
          @for (post of socialService.feed(); track post.id) {
            <div class="feed-card">
               <!-- Post Header -->
@@ -270,15 +284,35 @@ import { jsPDF } from 'jspdf';
       background: var(--bg-main);
       color: var(--primary);
     }
+    .spinning svg {
+      animation: rotate 1s linear infinite;
+    }
+    @keyframes rotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .spinner-large {
+      width: 48px;
+      height: 48px;
+      border: 4px solid var(--border-color);
+      border-top: 4px solid var(--primary);
+      border-radius: 50%;
+      animation: rotate 1s linear infinite;
+      margin: 0 auto;
+    }
   `]
 })
-export class ExploreComponent {
+export class ExploreComponent implements OnInit {
   socialService = inject(SocialService);
   authService = inject(AuthService);
   router = inject(Router);
 
   editingPostId = signal<string | null>(null);
   editContent = '';
+
+  ngOnInit() {
+    this.socialService.refreshFeed();
+  }
 
   isOwnPost(post: FeedItem): boolean {
     return post.userId === this.authService.currentUser()?.email;

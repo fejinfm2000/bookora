@@ -35,16 +35,25 @@ export class SocialService {
     feedItems$ = this.feedItemsSubject.asObservable();
 
     feed = signal<FeedItem[]>([]);
+    loading = signal<boolean>(false);
 
     constructor() {
-        this.loadFeed();
+        this.refreshFeed();
     }
 
-    private loadFeed() {
+    refreshFeed() {
+        this.loading.set(true);
         if (!this.github.isConfigured()) {
-            this.http.get<FeedItem[]>('assets/data/feed.json').subscribe(items => {
-                this.feed.set(items);
-                this.feedItemsSubject.next(items);
+            this.http.get<FeedItem[]>('assets/data/feed.json').subscribe({
+                next: items => {
+                    this.feed.set(items);
+                    this.feedItemsSubject.next(items);
+                    this.loading.set(false);
+                },
+                error: err => {
+                    console.error('Failed to load local feed', err);
+                    this.loading.set(false);
+                }
             });
             return;
         }
@@ -55,8 +64,12 @@ export class SocialService {
                     this.feed.set(fileData.content);
                     this.feedItemsSubject.next(fileData.content);
                 }
+                this.loading.set(false);
             },
-            error: (err: any) => console.error('Failed to load feed', err)
+            error: (err: any) => {
+                console.error('Failed to load feed', err);
+                this.loading.set(false);
+            }
         });
     }
 
