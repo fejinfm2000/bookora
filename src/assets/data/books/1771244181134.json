@@ -35,7 +35,13 @@
     {
       "id": "oj9xzrb",
       "pageNumber": 2,
-      "content": []
+      "content": [
+        {
+          "id": "gl9ptq",
+          "type": "paragraph",
+          "content": ""
+        }
+      ]
     }
   ]
 }
