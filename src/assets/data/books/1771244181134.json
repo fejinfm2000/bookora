@@ -14,7 +14,13 @@
     {
       "id": "cvx605",
       "pageNumber": 1,
-      "content": []
+      "content": [
+        {
+          "id": "lg2olo",
+          "type": "heading",
+          "content": ""
+        }
+      ]
     }
   ]
 }
