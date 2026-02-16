@@ -146,6 +146,43 @@ import { SkeletonComponent } from '../../shared/components/skeleton/skeleton.com
               </div>
             }
           </div>
+        } @else if (dataService.viewType() === 'list') {
+          <div class="books-list">
+            @for (book of dataService.filteredBooks(); track book.id) {
+              <div class="list-item" (click)="router.navigate(['/read', book.id])">
+                <div class="list-item-cover">
+                  <img [src]="book.coverImage" [alt]="book.title" />
+                </div>
+                <div class="list-item-content">
+                  <div class="list-item-header">
+                    <h3 class="list-item-title">{{ book.title }}</h3>
+                    <div class="list-item-actions">
+                      <button 
+                        (click)="toggleFavorite(book.id, $event)" 
+                        class="favorite-btn" 
+                        [class.is-favorite]="isFavorite(book.id)"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon-sm" [attr.fill]="isFavorite(book.id) ? 'currentColor' : 'none'" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.175 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.382-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                  <p class="list-item-author">By {{ book.author }}</p>
+                  <span class="list-item-genre">{{ book.genre }}</span>
+                  <div class="list-item-footer">
+                     <div class="stat">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon-xs" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                        {{ book.viewCount }}
+                      </div>
+                      <div class="list-item-buttons">
+                        <button (click)="router.navigate(['/edit', book.id]); $event.stopPropagation()" class="overlay-btn secondary compact">Edit</button>
+                      </div>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
         }
       }
     </div>

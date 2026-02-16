@@ -12,8 +12,23 @@ import { Book } from '../../shared/models/book.model';
   imports: [CommonModule, FormsModule],
   template: `
     <div class="editor-container">
+      <!-- Back button for mobile/header -->
+      <div class="editor-mobile-header">
+        <button (click)="router.navigate(['/library'])" class="back-btn-editor">
+          <svg xmlns="http://www.w3.org/2000/svg" class="icon-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          <span>Back</span>
+        </button>
+        <div class="header-status">
+           <span [class.status-saved]="!editorService.isDirty()">
+            {{ editorService.isDirty() ? 'Saving...' : 'Saved' }}
+          </span>
+        </div>
+      </div>
+
       <!-- Sidebar: Page Navigation -->
-      <aside class="editor-sidebar">
+      <aside class="editor-sidebar" [class.mobile-hidden]="isSidebarHidden">
         <div class="sidebar-header">
           <h3 class="sidebar-title">Pages</h3>
           <button (click)="editorService.addPage()" class="btn-icon-small">
@@ -66,24 +81,30 @@ import { Book } from '../../shared/models/book.model';
                <h2 class="paper-title">Page {{ editorService.currentPageIndex() + 1 }}</h2>
                <p class="book-title">{{ editorService.currentBook()?.title }}</p>
             </div>
-            <div class="block-actions">
+            
+            <!-- Mobile Toggle Sidebar -->
+            <button (click)="isSidebarHidden = !isSidebarHidden" class="btn-toggle-pages mobile-only">
+               {{ isSidebarHidden ? 'Show Pages' : 'Hide Pages' }}
+            </button>
+
+            <div class="block-actions header-actions">
               <button (click)="editorService.addBlock('heading')" class="btn-block-action">
                 <svg xmlns="http://www.w3.org/2000/svg" class="icon-xs" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
-                Heading
+                <span>Heading</span>
               </button>
               <button (click)="editorService.addBlock('paragraph')" class="btn-block-action">
                 <svg xmlns="http://www.w3.org/2000/svg" class="icon-xs" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
                 </svg>
-                Text
+                <span>Text</span>
               </button>
               <button (click)="editorService.addBlock('image')" class="btn-block-action">
                 <svg xmlns="http://www.w3.org/2000/svg" class="icon-xs" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
-                Image
+                <span>Image</span>
               </button>
             </div>
           </div>
@@ -127,12 +148,12 @@ import { Book } from '../../shared/models/book.model';
                         <img [src]="block.content" class="image-preview" />
                         <button (click)="editorService.updateBlockContent(block.id, '')" class="btn-remove-image">Remove</button>
                       } @else {
-                        <div class="image-placeholder">
+                        <div class="image-placeholder" (click)="imageInput.click()">
                           <svg xmlns="http://www.w3.org/2000/svg" class="icon-lg text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                           </svg>
                           <span class="upload-text">Click to upload image</span>
-                          <input type="file" class="hidden-input" (change)="onImageUpload($event, block.id)" accept="image/*" />
+                          <input #imageInput type="file" class="hidden-input" (change)="onImageUpload($event, block.id)" accept="image/*" />
                         </div>
                       }
                     </div>
@@ -141,6 +162,13 @@ import { Book } from '../../shared/models/book.model';
               </div>
             }
           </div>
+        </div>
+
+        <!-- Floating Add actions for mobile -->
+        <div class="mobile-add-actions mobile-only">
+           <button (click)="editorService.addBlock('heading')">H</button>
+           <button (click)="editorService.addBlock('paragraph')">T</button>
+           <button (click)="editorService.addBlock('image')">I</button>
         </div>
       </main>
     </div>
@@ -151,6 +179,7 @@ export class BookEditorComponent implements OnInit {
   router = inject(Router);
   editorService = inject(EditorService);
   dataService = inject(DataService);
+  isSidebarHidden = true;
 
   ngOnInit() {
     const bookId = this.route.snapshot.paramMap.get('id');
