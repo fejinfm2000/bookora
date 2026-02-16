@@ -2,15 +2,16 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ThemeService } from '../../core/services/theme.service';
 import { AuthService } from '../../core/auth/auth.service';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterLink],
   template: `
     <header class="app-header">
       <div class="header-brand">
-        <h1 class="brand-name">Bookora</h1>
+        <h1 class="brand-name" routerLink="/library" style="cursor: pointer;">Bookora</h1>
       </div>
 
       <div class="header-search">
@@ -41,8 +42,8 @@ import { AuthService } from '../../core/auth/auth.service';
           }
         </button>
         
-        <div class="user-profile">
-          <div class="user-avatar">
+        <div class="user-profile" routerLink="/profile" style="cursor: pointer;">
+          <div class="user-avatar text-white">
             {{ getUserInitials() }}
           </div>
         </div>

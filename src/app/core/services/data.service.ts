@@ -4,6 +4,7 @@ import { GithubService } from './github.service';
 import { AuthService } from '../auth/auth.service';
 import { Observable, forkJoin, of } from 'rxjs';
 import { catchError, map, switchMap, tap } from 'rxjs/operators';
+import { jsPDF } from 'jspdf';
 
 @Injectable({
     providedIn: 'root'
@@ -226,5 +227,72 @@ export class DataService {
                 return this.github.saveFile(this.BOOKS_INDEX_PATH, indexContent, sha, 'Update books index');
             })
         );
+    }
+
+    /**
+     * Download a book as PDF
+     */
+    downloadBook(book: Book) {
+        const doc = new jsPDF();
+        let yOffset = 20;
+
+        // Title
+        doc.setFontSize(22);
+        doc.text(book.title, 20, yOffset);
+        yOffset += 10;
+
+        // Author
+        doc.setFontSize(14);
+        doc.text(`By ${book.author}`, 20, yOffset);
+        yOffset += 15;
+
+        // Description
+        doc.setFontSize(12);
+        const splitDescription = doc.splitTextToSize(book.description, 170);
+        doc.text(splitDescription, 20, yOffset);
+        yOffset += (splitDescription.length * 7) + 10;
+
+        // Pages
+        book.pages.forEach((page, index) => {
+            if (yOffset > 250) {
+                doc.addPage();
+                yOffset = 20;
+            } else {
+                yOffset += 10;
+            }
+
+            doc.setFontSize(16);
+            doc.text(`Page ${index + 1}`, 20, yOffset);
+            yOffset += 10;
+
+            page.content.forEach(block => {
+                if (yOffset > 270) {
+                    doc.addPage();
+                    yOffset = 20;
+                }
+
+                if (block.type === 'heading') {
+                    doc.setFontSize(14);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text(block.content, 20, yOffset);
+                    yOffset += 10;
+                } else if (block.type === 'paragraph') {
+                    doc.setFontSize(12);
+                    doc.setFont('helvetica', 'normal');
+                    const lines = doc.splitTextToSize(block.content, 170);
+                    doc.text(lines, 20, yOffset);
+                    yOffset += (lines.length * 7) + 5;
+                } else if (block.type === 'image') {
+                    // For now, we'll just add the image URL or a placeholder if it's base64
+                    doc.setFontSize(10);
+                    doc.setTextColor(150);
+                    doc.text('[Image Content]', 20, yOffset);
+                    yOffset += 10;
+                    doc.setTextColor(0);
+                }
+            });
+        });
+
+        doc.save(`${book.title.replace(/\s+/g, '_')}.pdf`);
     }
 }

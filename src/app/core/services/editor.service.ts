@@ -77,7 +77,7 @@ export class EditorService {
         const block: PageBlock = {
             id: Math.random().toString(36).substring(7),
             type,
-            content: type === 'image' ? 'https://images.unsplash.com/photo-1516979187457-637abb4f9353?q=80&w=400' : ''
+            content: ''
         };
 
         this.currentBook.update((b: Book | null) => {
