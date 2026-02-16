@@ -33,6 +33,18 @@ export const routes: Routes = [
                 loadComponent: () => import('./features/book-reader/book-reader.component').then(m => m.BookReaderComponent)
             },
             {
+                path: 'explore',
+                loadComponent: () => import('./features/explore/explore.component').then(m => m.ExploreComponent)
+            },
+            {
+                path: 'feed',
+                loadComponent: () => import('./features/feed/feed-upload.component').then(m => m.FeedUploadComponent)
+            },
+            {
+                path: 'profile',
+                loadComponent: () => import('./features/profile/profile.component').then(m => m.ProfileComponent)
+            },
+            {
                 path: '',
                 redirectTo: 'library',
                 pathMatch: 'full'
