@@ -13,6 +13,9 @@ const REPO_NAME = environment.github.repo;
 @Injectable({
     providedIn: 'root'
 })
+@Injectable({
+    providedIn: 'root'
+})
 export class GithubService {
     private http = inject(HttpClient);
     private apiUrl = 'https://api.github.com';
@@ -44,6 +47,34 @@ export class GithubService {
     }
 
     /**
+     * Helper to encode UTF-8 string to Base64
+     */
+    private utf8ToBase64(str: string): string {
+        try {
+            const bytes = new TextEncoder().encode(str);
+            const binString = Array.from(bytes, (byte) => String.fromCodePoint(byte)).join("");
+            return btoa(binString);
+        } catch (e) {
+            console.error('Error encoding string to Base64:', e);
+            throw new Error('Failed to encode content');
+        }
+    }
+
+    /**
+     * Helper to decode Base64 to UTF-8 string
+     */
+    private base64ToUtf8(base64: string): string {
+        try {
+            const binString = atob(base64.replace(/\s/g, ''));
+            const bytes = Uint8Array.from(binString, (m) => m.codePointAt(0)!);
+            return new TextDecoder().decode(bytes);
+        } catch (e) {
+            console.error('Error decoding Base64 to string:', e);
+            throw new Error('Failed to decode content');
+        }
+    }
+
+    /**
      * Get file content from GitHub
      * Returns parsed JSON content and SHA
      */
@@ -54,14 +85,9 @@ export class GithubService {
 
         return this.http.get<any>(url, { headers: this.headers }).pipe(
             map(response => {
-                // GitHub API returns content in Base64
-                // We need to decode it
-                // Note: Generic unicode decoder for robustness
-                const rawContent = atob(response.content.replace(/\s/g, ''));
                 try {
-                    // Attempt to parse JSON
-                    // Handle UTF-8 characters properly
-                    const jsonContent = JSON.parse(decodeURIComponent(escape(rawContent)));
+                    const rawContent = this.base64ToUtf8(response.content);
+                    const jsonContent = JSON.parse(rawContent);
                     return { content: jsonContent as T, sha: response.sha };
                 } catch (e) {
                     console.error('Error parsing JSON from GitHub', e);
@@ -87,9 +113,16 @@ export class GithubService {
 
         const url = `${this.apiUrl}/repos/${REPO_OWNER}/${REPO_NAME}/contents/${path}`;
 
-        // Encode content to Base64 (handling UTF-8)
-        const jsonString = JSON.stringify(content, null, 2);
-        const encodedContent = btoa(unescape(encodeURIComponent(jsonString)));
+        // Ensure content is valid JSON before encoding
+        let jsonString: string;
+        try {
+            jsonString = JSON.stringify(content, null, 2);
+        } catch (e) {
+            console.error('Error stringifying content for GitHub:', e);
+            return throwError(() => new Error('Failed to serialize content'));
+        }
+
+        const encodedContent = this.utf8ToBase64(jsonString);
 
         const body: any = {
             message: message,
