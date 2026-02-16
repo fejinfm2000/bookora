@@ -2,17 +2,14 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, from, of, throwError } from 'rxjs';
 import { map, catchError, switchMap } from 'rxjs/operators';
-
 import { environment } from '../../../environments/environment';
+
 
 // CONFIGURATION
 const GITHUB_TOKEN = environment.github.token;
 const REPO_OWNER = environment.github.owner;
 const REPO_NAME = environment.github.repo;
 
-@Injectable({
-    providedIn: 'root'
-})
 @Injectable({
     providedIn: 'root'
 })
@@ -84,11 +81,27 @@ export class GithubService {
         const url = `${this.apiUrl}/repos/${REPO_OWNER}/${REPO_NAME}/contents/${path}`;
 
         return this.http.get<any>(url, { headers: this.headers }).pipe(
-            map(response => {
+            switchMap(response => {
+                // Handle large files (> 1MB) where content is not included in the response
+                if (response.type === 'file' && !response.content && response.sha) {
+                    console.log(`GitHub: File ${path} is large, fetching blob ${response.sha}`);
+                    const blobUrl = `${this.apiUrl}/repos/${REPO_OWNER}/${REPO_NAME}/git/blobs/${response.sha}`;
+                    return this.http.get<any>(blobUrl, { headers: this.headers }).pipe(
+                        map(blobResponse => ({
+                            content: this.base64ToUtf8(blobResponse.content),
+                            sha: response.sha
+                        }))
+                    );
+                }
+                return of({
+                    content: this.base64ToUtf8(response.content),
+                    sha: response.sha
+                });
+            }),
+            map(data => {
                 try {
-                    const rawContent = this.base64ToUtf8(response.content);
-                    const jsonContent = JSON.parse(rawContent);
-                    return { content: jsonContent as T, sha: response.sha };
+                    const jsonContent = JSON.parse(data.content);
+                    return { content: jsonContent as T, sha: data.sha };
                 } catch (e) {
                     console.error('Error parsing JSON from GitHub', e);
                     throw new Error('Invalid JSON content in file');
