@@ -57,3 +57,22 @@ Angular CLI does not come with an end-to-end testing framework by default. You c
 ## Additional Resources
 
 For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+
+## CI / Build Environment Variables
+
+This project generates `src/environments/environment*.ts` at build time using `scripts/set-env.js`. Do not commit those generated files.
+
+Required environment variables for CI (Netlify, Vercel, GitHub Actions, etc.):
+
+- `GITHUB_TOKEN` — Personal access token used to write files to the repository (required for saving JSON files to `src/assets/data`).
+- `REPO_OWNER` — GitHub repo owner (defaults to `fejinfm2000`).
+- `REPO_NAME` — GitHub repository name (defaults to `bookora`).
+- `MEGA_EMAIL` — Mega.io account email (required for media uploads to Mega).
+- `MEGA_PASSWORD` — Mega.io account password (required for media uploads to Mega).
+- `MEGA_APIKEY` — Optional Mega API key if used by your account.
+- `ADMIN_EMAILS` — Optional comma-separated list of admin emails (e.g. `admin@example.com,owner@example.com`).
+
+Notes:
+- The build runs `npm run config` which executes `node scripts/set-env.js` and writes `src/environments/environment.prod.ts` (and optionally `environment.ts`). Ensure CI variables are set so `mega` and `adminEmails` are present in the generated file.
+- `.gitignore` is configured to ignore generated environment files; keep `src/environments/environment.d.ts` in the repo so TypeScript knows the expected shape.
+
