@@ -5,9 +5,16 @@ const path = require('path');
 const token = process.env.GITHUB_TOKEN || '';
 const owner = process.env.REPO_OWNER || 'fejinfm2000';
 const repo = process.env.REPO_NAME || 'bookora';
+const megaEmail = process.env.MEGA_EMAIL || '';
+const megaPassword = process.env.MEGA_PASSWORD || '';
+const megaApiKey = process.env.MEGA_APIKEY || '';
+const adminEmailsEnv = process.env.ADMIN_EMAILS || 'fejinfm2000@gmail.com';
+const adminEmails = adminEmailsEnv.split(',').map(e => e.trim()).filter(Boolean);
 
 const targetPath = path.join(__dirname, '../src/environments/environment.prod.ts');
 const targetPathDev = path.join(__dirname, '../src/environments/environment.ts');
+
+const adminEmailsArrayLiteral = `[${adminEmails.map(e => `'${e.replace(/'/g, "\\'")}'`).join(', ')}]`;
 
 const envFileContent = `export const environment = {
   production: true,
@@ -15,7 +22,13 @@ const envFileContent = `export const environment = {
     token: '${token}',
     owner: '${owner}',
     repo: '${repo}'
-  }
+  },
+  mega: {
+    email: '${megaEmail}',
+    password: '${megaPassword}',
+    apiKey: '${megaApiKey}'
+  },
+  adminEmails: ${adminEmailsArrayLiteral}
 };
 `;
 

@@ -4,5 +4,11 @@ export const environment = {
     token: '',
     owner: 'fejinfm2000',
     repo: 'bookora'
-  }
+  },
+  mega: {
+    email: '',
+    password: '',
+    apiKey: ''
+  },
+  adminEmails: ['fejinfm2000@gmail.com']
 };
