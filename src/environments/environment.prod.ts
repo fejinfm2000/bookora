@@ -10,5 +10,5 @@ export const environment = {
     password: '',
     apiKey: ''
   },
-  adminEmails: []
+  adminEmails: ['fejinfm2000@gmail.com']
 };

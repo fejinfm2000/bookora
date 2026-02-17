@@ -40,7 +40,7 @@ export class AdminService {
      * Check if a specific email is in the admin list
      */
     isUserAdmin(email: string): boolean {
-        const adminEmails = environment.adminEmails || [];
+        const adminEmails = (environment.adminEmails || []) as string[];
         return adminEmails.includes(email.toLowerCase());
     }
 
@@ -48,7 +48,7 @@ export class AdminService {
      * Get list of admin emails from environment
      */
     getAdminEmails(): string[] {
-        return environment.adminEmails || [];
+        return (environment.adminEmails || []) as string[];
     }
 
     /**

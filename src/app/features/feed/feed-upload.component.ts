@@ -163,18 +163,18 @@ export class FeedUploadComponent {
 
           forkJoin(uploadObservables).subscribe({
             next: (urls: string[]) => {
-              this.socialService.addPost(this.textContent(), urls, thumbs.map(t => t || undefined));
+              this.socialService.addPost(this.textContent(), urls, thumbs.map(t => t || ''));
               this.router.navigate(['/explore']);
             },
             error: (err) => {
               console.error('Failed to upload one or more images to Mega:', err);
-              this.socialService.addPost(this.textContent(), validImages, thumbs.map(t => t || undefined));
+              this.socialService.addPost(this.textContent(), validImages, thumbs.map(t => t || ''));
               this.router.navigate(['/explore']);
             }
           });
         } else {
           // Mega not configured: save provided URLs or data URLs as-is, include thumbs where available
-          this.socialService.addPost(this.textContent(), validImages, thumbs.map(t => t || undefined));
+          this.socialService.addPost(this.textContent(), validImages, thumbs.map(t => t || ''));
           this.router.navigate(['/explore']);
         }
       }).catch(err => {
