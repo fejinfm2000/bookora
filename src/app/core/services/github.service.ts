@@ -76,7 +76,20 @@ export class GithubService {
      * Returns parsed JSON content and SHA
      */
     getFile<T>(path: string): Observable<{ content: T, sha: string } | null> {
-        if (!this.isConfigured()) return throwError(() => new Error('GitHub not configured'));
+        // Local development fallback: if GitHub is not configured, load the file
+        // directly from the `assets` folder so features like login work without a token.
+        if (!this.isConfigured()) {
+            const localPath = path.replace(/^src\//, '');
+            const localUrl = localPath.startsWith('assets/') ? localPath : `assets/${localPath}`;
+            return this.http.get<T>(localUrl).pipe(
+                map(content => ({ content: content as T, sha: '' })),
+                catchError(err => {
+                    console.error(`Local getFile Error [${localUrl}]:`, err);
+                    if (err.status === 404) return of(null as any);
+                    return throwError(() => err);
+                })
+            );
+        }
 
         const url = `${this.apiUrl}/repos/${REPO_OWNER}/${REPO_NAME}/contents/${path}`;
 
