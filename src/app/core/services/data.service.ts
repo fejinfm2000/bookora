@@ -73,8 +73,9 @@ export class DataService {
      * Load books from GitHub index
      */
     loadBooks() {
-        if (!this.github.isConfigured()) return;
-
+        // Always attempt to load the books index. `GithubService.getFile`
+        // now falls back to `assets/...` when GitHub isn't configured,
+        // so we don't short-circuit here.
         this.github.getFile<Book[]>(this.BOOKS_INDEX_PATH).subscribe({
             next: (fileData: any) => {
                 if (fileData) {
