@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SocialService } from '../../core/services/social.service';
 import { Router } from '@angular/router';
+import { MegaService } from '../../core/services/mega.service';
+import { forkJoin, of } from 'rxjs';
 
 @Component({
   selector: 'app-feed-upload',
@@ -91,6 +93,7 @@ import { Router } from '@angular/router';
 export class FeedUploadComponent {
   socialService = inject(SocialService);
   router = inject(Router);
+  megaService = inject(MegaService);
 
   textContent = signal('');
   images = signal<string[]>(['']);
@@ -138,8 +141,35 @@ export class FeedUploadComponent {
   postToFeed() {
     if (this.textContent().trim()) {
       const validImages = this.images().filter(url => url.trim() !== '');
-      this.socialService.addPost(this.textContent(), validImages);
-      this.router.navigate(['/explore']);
+
+      // If Mega is configured, upload any data URLs to Mega and replace them with share URLs
+      if (this.megaService.isConfigured()) {
+        const uploadObservables = validImages.map((img, idx) => {
+          if (typeof img === 'string' && img.startsWith('data:')) {
+            const filename = this.megaService.generateFilename(`feed_image_${idx}.png`, 'feed');
+            return this.megaService.uploadImageFromDataUrl(img, filename);
+          }
+          // already a URL
+          return of(img);
+        });
+
+        forkJoin(uploadObservables).subscribe({
+          next: (urls: string[]) => {
+            this.socialService.addPost(this.textContent(), urls);
+            this.router.navigate(['/explore']);
+          },
+          error: (err) => {
+            console.error('Failed to upload one or more images to Mega:', err);
+            // fallback: post using whatever URLs we have (may include data URLs)
+            this.socialService.addPost(this.textContent(), validImages);
+            this.router.navigate(['/explore']);
+          }
+        });
+      } else {
+        // Mega not configured: save provided URLs or data URLs as-is (fallback)
+        this.socialService.addPost(this.textContent(), validImages);
+        this.router.navigate(['/explore']);
+      }
     }
   }
 }
