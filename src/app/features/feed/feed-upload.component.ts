@@ -143,33 +143,72 @@ export class FeedUploadComponent {
       const validImages = this.images().filter(url => url.trim() !== '');
 
       // If Mega is configured, upload any data URLs to Mega and replace them with share URLs
-      if (this.megaService.isConfigured()) {
-        const uploadObservables = validImages.map((img, idx) => {
-          if (typeof img === 'string' && img.startsWith('data:')) {
-            const filename = this.megaService.generateFilename(`feed_image_${idx}.png`, 'feed');
-            return this.megaService.uploadImageFromDataUrl(img, filename);
-          }
-          // already a URL
-          return of(img);
-        });
+      // Create thumbnails for each image (for quick display)
+      const thumbnailPromises = validImages.map(img => {
+        if (typeof img === 'string' && img.startsWith('data:')) {
+          return this.createThumbnail(img, 300, 300);
+        }
+        return Promise.resolve('');
+      });
 
-        forkJoin(uploadObservables).subscribe({
-          next: (urls: string[]) => {
-            this.socialService.addPost(this.textContent(), urls);
-            this.router.navigate(['/explore']);
-          },
-          error: (err) => {
-            console.error('Failed to upload one or more images to Mega:', err);
-            // fallback: post using whatever URLs we have (may include data URLs)
-            this.socialService.addPost(this.textContent(), validImages);
-            this.router.navigate(['/explore']);
-          }
-        });
-      } else {
-        // Mega not configured: save provided URLs or data URLs as-is (fallback)
+      Promise.all(thumbnailPromises).then((thumbs) => {
+        if (this.megaService.isConfigured()) {
+          const uploadObservables = validImages.map((img, idx) => {
+            if (typeof img === 'string' && img.startsWith('data:')) {
+              const filename = this.megaService.generateFilename(`feed_image_${idx}.png`, 'feed');
+              return this.megaService.uploadImageFromDataUrl(img, filename);
+            }
+            return of(img);
+          });
+
+          forkJoin(uploadObservables).subscribe({
+            next: (urls: string[]) => {
+              this.socialService.addPost(this.textContent(), urls, thumbs.map(t => t || undefined));
+              this.router.navigate(['/explore']);
+            },
+            error: (err) => {
+              console.error('Failed to upload one or more images to Mega:', err);
+              this.socialService.addPost(this.textContent(), validImages, thumbs.map(t => t || undefined));
+              this.router.navigate(['/explore']);
+            }
+          });
+        } else {
+          // Mega not configured: save provided URLs or data URLs as-is, include thumbs where available
+          this.socialService.addPost(this.textContent(), validImages, thumbs.map(t => t || undefined));
+          this.router.navigate(['/explore']);
+        }
+      }).catch(err => {
+        console.error('Failed to generate thumbnails', err);
+        // fallback
         this.socialService.addPost(this.textContent(), validImages);
         this.router.navigate(['/explore']);
-      }
+      });
     }
+  }
+
+  private createThumbnail(dataUrl: string, maxW: number, maxH: number): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let { width, height } = img;
+        const ratio = Math.min(maxW / width, maxH / height, 1);
+        width = Math.round(width * ratio);
+        height = Math.round(height * ratio);
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return resolve('');
+        ctx.drawImage(img, 0, 0, width, height);
+        try {
+          const thumb = canvas.toDataURL('image/jpeg', 0.7);
+          resolve(thumb);
+        } catch (e) {
+          resolve('');
+        }
+      };
+      img.onerror = (e) => reject(e);
+      img.src = dataUrl;
+    });
   }
 }

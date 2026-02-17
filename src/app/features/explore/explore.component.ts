@@ -95,7 +95,7 @@ import { jsPDF } from 'jspdf';
                   @if (post.images && post.images.length > 0) {
                     <div class="post-images-grid" [class.multiple]="post.images.length > 1">
                        @for (img of post.images; track img) {
-                         <img [src]="img" class="post-image" />
+                         <img [src]="post.imageThumbs && post.imageThumbs.length > 0 && post.imageThumbs[post.images.indexOf(img)] ? post.imageThumbs[post.images.indexOf(img)] : img" class="post-image" />
                        }
                     </div>
                   } @else if (post.image) {

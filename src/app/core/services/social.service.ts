@@ -20,6 +20,7 @@ export interface FeedItem {
     shares: number;
     hasLiked?: boolean;
     images?: string[]; // Multiple images support
+    imageThumbs?: string[]; // Optional base64 thumbnails for quick display
 }
 
 @Injectable({
@@ -110,7 +111,7 @@ export class SocialService {
         this.saveFeed(updatedFeed);
     }
 
-    addPost(content: string, images?: string[]) {
+    addPost(content: string, images?: string[], imageThumbs?: string[]) {
         const user = this.auth.currentUser();
         const newPost: FeedItem = {
             id: 'f' + Date.now(),
@@ -119,6 +120,7 @@ export class SocialService {
             userAvatar: (user?.email?.[0] || 'U').toUpperCase(),
             content,
             images: images || [],
+            imageThumbs: imageThumbs || [],
             image: images?.[0], // For backward compatibility
             timestamp: new Date().toISOString(),
             likes: 0,
