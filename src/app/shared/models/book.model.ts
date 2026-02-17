@@ -21,6 +21,6 @@ export interface BookPage {
 
 export interface PageBlock {
     id: string;
-    type: 'paragraph' | 'heading' | 'image';
+    type: 'paragraph' | 'heading' | 'image' | 'video';
     content: string;
 }

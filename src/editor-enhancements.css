@@ -1,0 +1,202 @@
+/* ===== BOOK EDITOR ENHANCEMENTS ===== */
+
+/* Increase page section height for better editing experience */
+.editor-paper {
+    min-height: calc(100vh - 220px) !important;
+    max-width: 900px !important;
+}
+
+.content-blocks {
+    min-height: 600px !important;
+    padding: 2rem !important;
+}
+
+/* Better textarea sizing */
+.block-paragraph {
+    min-height: 120px !important;
+    resize: vertical !important;
+}
+
+/* Collapsible Toolbar Styles */
+.collapsible-toolbar {
+    position: relative;
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.toolbar-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1rem;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+}
+
+.toolbar-toggle:hover {
+    background: var(--primary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+}
+
+.toolbar-toggle svg {
+    width: 18px;
+    height: 18px;
+    transition: transform 0.3s ease;
+}
+
+.toolbar-toggle.expanded svg {
+    transform: rotate(45deg);
+}
+
+.toolbar-buttons {
+    display: flex;
+    gap: 0.5rem;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(-10px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
+}
+
+.toolbar-buttons.expanded {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(0);
+    pointer-events: all;
+}
+
+/* Staggered animation for toolbar buttons */
+.toolbar-buttons.expanded .btn-block-action:nth-child(1) {
+    transition-delay: 0.05s;
+}
+
+.toolbar-buttons.expanded .btn-block-action:nth-child(2) {
+    transition-delay: 0.1s;
+}
+
+.toolbar-buttons.expanded .btn-block-action:nth-child(3) {
+    transition-delay: 0.15s;
+}
+
+.toolbar-buttons.expanded .btn-block-action:nth-child(4) {
+    transition-delay: 0.2s;
+}
+
+.btn-block-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    color: var(--text-main);
+    font-weight: 500;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.btn-block-action:hover {
+    background: var(--bg-main);
+    border-color: var(--primary);
+    color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Mobile toolbar improvements */
+@media (max-width: 768px) {
+    .mobile-add-actions {
+        position: fixed;
+        bottom: 80px;
+        right: 16px;
+        display: flex !important;
+        flex-direction: column;
+        gap: 0.75rem;
+        z-index: 50;
+    }
+
+    .mobile-add-actions button {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: var(--primary);
+        border: none;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .mobile-add-actions button:hover,
+    .mobile-add-actions button:active {
+        transform: scale(1.1);
+        box-shadow: 0 6px 16px rgba(99, 102, 241, 0.5);
+    }
+
+    .content-blocks {
+        padding-bottom: 200px !important;
+    }
+}
+
+/* Better spacing for editor components */
+.editor-paper {
+    padding: 2rem !important;
+}
+
+@media (max-width: 768px) {
+    .editor-paper {
+        padding: 1.5rem 1rem !important;
+    }
+}
+
+/* Improved block styling */
+.content-block-wrapper {
+    margin-bottom: 1.5rem !important;
+    transition: all 0.2s ease;
+}
+
+.content-block-wrapper:hover {
+    transform: translateX(4px);
+}
+
+.block-heading {
+    font-size: 1.75rem !important;
+    font-weight: 700 !important;
+    padding: 0.75rem !important;
+}
+
+.block-paragraph {
+    font-size: 1rem !important;
+    line-height: 1.8 !important;
+    padding: 0.75rem !important;
+}
+
+.block-image {
+    min-height: 300px !important;
+}
+
+.image-placeholder {
+    min-height: 250px !important;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.image-placeholder:hover {
+    background: var(--bg-main) !important;
+    border-color: var(--primary) !important;
+}

@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit, computed } from '@angular/core';
+import { Component, inject, signal, OnInit, HostListener, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DataService } from '../../core/services/data.service';
@@ -9,7 +9,7 @@ import { Book } from '../../shared/models/book.model';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="reader-container">
+    <div class="reader-container" #readerContainer>
       <!-- Header Area -->
       <div class="reader-header">
         <button 
@@ -19,63 +19,109 @@ import { Book } from '../../shared/models/book.model';
           <svg xmlns="http://www.w3.org/2000/svg" class="icon-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
-          Back to Library
+          <span class="mobile-hidden">Back to Library</span>
         </button>
 
         <button 
           *ngIf="book()"
           (click)="dataService.downloadBook(book()!)"
-          class="back-btn-premium"
-          style="margin-left: auto; border-color: var(--primary); color: var(--primary);"
+          class="back-btn-premium download-btn"
         >
           <svg xmlns="http://www.w3.org/2000/svg" class="icon-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
           </svg>
-          Download Book
+          <span class="mobile-hidden">Download Book</span>
         </button>
       </div>
 
-      <!-- Book Container -->
-      <div class="book-viewport">
+      <!-- Book Viewport with Touch Support -->
+      <div 
+        class="book-viewport"
+        (touchstart)="onTouchStart($event)"
+        (touchmove)="onTouchMove($event)"
+        (touchend)="onTouchEnd($event)"
+      >
         
-        <!-- Left Side (Previous page or Cover) -->
-        <div class="page-side page-left">
-          @if (currentPageIndex() > 0) {
-            <div class="page-content">
-              @for (block of book()?.pages?.[currentPageIndex() - 1]?.content; track block.id) {
+        <!-- Mobile Single Page View -->
+        <div class="mobile-page-view mobile-only">
+          <div class="page-content-mobile">
+            @if (currentPageIndex() === 0) {
+              <div class="book-cover-view-mobile">
+                <img [src]="book()?.coverImage" class="cover-image-mobile" />
+                <h1 class="cover-title-mobile">{{ book()?.title }}</h1>
+                <p class="cover-author-mobile">{{ book()?.author }}</p>
+              </div>
+            } @else {
+              @for (block of book()?.pages?.[currentPageIndex()]?.content; track block.id) {
                 @switch (block.type) {
                   @case ('heading') { <h2 class="page-heading">{{ block.content }}</h2> }
                   @case ('paragraph') { <p class="page-text">{{ block.content }}</p> }
                   @case ('image') { <img [src]="block.content" class="page-image" /> }
+                  @case ('video') { 
+                    <video controls class="page-video">
+                      <source [src]="block.content" type="video/mp4">
+                      Your browser does not support the video tag.
+                    </video>
+                  }
                 }
               }
-            </div>
-          } @else {
-            <div class="book-cover-view">
-               <img [src]="book()?.coverImage" class="cover-image" />
-               <h1 class="cover-title">{{ book()?.title }}</h1>
-               <p class="cover-author">{{ book()?.author }}</p>
-            </div>
-          }
-          <div class="page-number-left" *ngIf="currentPageIndex() > 0">{{ currentPageIndex() }}</div>
-        </div>
-
-        <!-- Right Side (Current page) -->
-        <div class="page-side page-right">
-          <div class="page-content">
-            @for (block of book()?.pages?.[currentPageIndex()]?.content; track block.id) {
-              @switch (block.type) {
-                @case ('heading') { <h2 class="page-heading">{{ block.content }}</h2> }
-                @case ('paragraph') { <p class="page-text">{{ block.content }}</p> }
-                @case ('image') { <img [src]="block.content" class="page-image" /> }
-              }
-            } @empty {
-              <div class="empty-page-state">
-                This page is empty.
-              </div>
             }
           </div>
-           <div class="page-number-right">{{ currentPageIndex() + 1 }}</div>
+        </div>
+
+        <!-- Desktop Two-Page View -->
+        <div class="desktop-page-view desktop-only">
+          <!-- Left Side (Previous page or Cover) -->
+          <div class="page-side page-left">
+            @if (currentPageIndex() > 0) {
+              <div class="page-content">
+                @for (block of book()?.pages?.[currentPageIndex() - 1]?.content; track block.id) {
+                  @switch (block.type) {
+                    @case ('heading') { <h2 class="page-heading">{{ block.content }}</h2> }
+                    @case ('paragraph') { <p class="page-text">{{ block.content }}</p> }
+                    @case ('image') { <img [src]="block.content" class="page-image" /> }
+                    @case ('video') { 
+                      <video controls class="page-video">
+                        <source [src]="block.content" type="video/mp4">
+                        Your browser does not support the video tag.
+                      </video>
+                    }
+                  }
+                }
+              </div>
+            } @else {
+              <div class="book-cover-view">
+                <img [src]="book()?.coverImage" class="cover-image" />
+                <h1 class="cover-title">{{ book()?.title }}</h1>
+                <p class="cover-author">{{ book()?.author }}</p>
+              </div>
+            }
+            <div class="page-number-left" *ngIf="currentPageIndex() > 0">{{ currentPageIndex() }}</div>
+          </div>
+
+          <!-- Right Side (Current page) -->
+          <div class="page-side page-right">
+            <div class="page-content">
+              @for (block of book()?.pages?.[currentPageIndex()]?.content; track block.id) {
+                @switch (block.type) {
+                  @case ('heading') { <h2 class="page-heading">{{ block.content }}</h2> }
+                  @case ('paragraph') { <p class="page-text">{{ block.content }}</p> }
+                  @case ('image') { <img [src]="block.content" class="page-image" /> }
+                  @case ('video') { 
+                    <video controls class="page-video">
+                      <source [src]="block.content" type="video/mp4">
+                      Your browser does not support the video tag.
+                    </video>
+                  }
+                }
+              } @empty {
+                <div class="empty-page-state">
+                  This page is empty.
+                </div>
+              }
+            </div>
+            <div class="page-number-right">{{ currentPageIndex() + 1 }}</div>
+          </div>
         </div>
 
         <!-- Navigation Buttons -->
@@ -114,6 +160,8 @@ import { Book } from '../../shared/models/book.model';
   `
 })
 export class BookReaderComponent implements OnInit {
+  @ViewChild('readerContainer') readerContainer!: ElementRef;
+
   route = inject(ActivatedRoute);
   router = inject(Router);
   dataService = inject(DataService);
@@ -121,6 +169,11 @@ export class BookReaderComponent implements OnInit {
   book = signal<Book | undefined>(undefined);
   currentPageIndex = signal<number>(0);
   isFlipping = signal<boolean>(false);
+
+  // Touch gesture tracking
+  private touchStartX = 0;
+  private touchEndX = 0;
+  private readonly SWIPE_THRESHOLD = 50;
 
   ngOnInit() {
     const bookId = this.route.snapshot.paramMap.get('id');
@@ -143,6 +196,43 @@ export class BookReaderComponent implements OnInit {
         error: () => this.router.navigate(['/library'])
       });
     }
+  }
+
+  // Keyboard navigation
+  @HostListener('window:keydown', ['$event'])
+  handleKeyboard(event: KeyboardEvent) {
+    if (event.key === 'ArrowRight') {
+      this.nextPage();
+    } else if (event.key === 'ArrowLeft') {
+      this.prevPage();
+    }
+  }
+
+  // Touch gesture handlers
+  onTouchStart(event: TouchEvent) {
+    this.touchStartX = event.changedTouches[0].screenX;
+  }
+
+  onTouchMove(event: TouchEvent) {
+    this.touchEndX = event.changedTouches[0].screenX;
+  }
+
+  onTouchEnd(event: TouchEvent) {
+    const swipeDistance = this.touchStartX - this.touchEndX;
+
+    if (Math.abs(swipeDistance) > this.SWIPE_THRESHOLD) {
+      if (swipeDistance > 0) {
+        // Swipe left - next page
+        this.nextPage();
+      } else {
+        // Swipe right - previous page
+        this.prevPage();
+      }
+    }
+
+    // Reset touch tracking
+    this.touchStartX = 0;
+    this.touchEndX = 0;
   }
 
   nextPage() {

@@ -73,7 +73,7 @@ export class EditorService {
         this.isDirty.set(true);
     }
 
-    addBlock(type: 'paragraph' | 'heading' | 'image') {
+    addBlock(type: 'paragraph' | 'heading' | 'image' | 'video') {
         const block: PageBlock = {
             id: Math.random().toString(36).substring(7),
             type,

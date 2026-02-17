@@ -1,4 +1,8 @@
+@import url('./icon-fixes.css');
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('./sidebar-mobile.css');
+@import url('./reader-mobile.css');
+@import url('./editor-enhancements.css');
 
 :root {
   --primary: #6366f1;

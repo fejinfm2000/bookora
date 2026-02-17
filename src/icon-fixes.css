@@ -1,0 +1,72 @@
+/* ===== SVG ICON VISIBILITY FIXES ===== */
+
+/* Ensure all SVG icons display properly */
+svg {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+/* Navigation icons */
+.nav-icon svg,
+.mobile-nav-icon svg {
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* Sidebar toggle icon */
+.sidebar-toggle svg {
+    display: block !important;
+}
+
+/* Mobile navigation icons */
+.mobile-nav-icon {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.mobile-nav-icon svg {
+    flex-shrink: 0;
+}
+
+/* Button icons */
+.btn-block-action svg,
+.toolbar-toggle svg,
+.icon-btn svg {
+    display: inline-block !important;
+    flex-shrink: 0;
+}
+
+/* Editor icons */
+.btn-icon-small svg,
+.btn-delete-page svg,
+.btn-delete-block svg {
+    display: block !important;
+}
+
+/* Mobile action buttons */
+.mobile-add-actions button svg {
+    display: block !important;
+    width: 24px !important;
+    height: 24px !important;
+}
+
+/* Back button icons */
+.back-btn-premium svg {
+    display: inline-block !important;
+    flex-shrink: 0;
+}
+
+/* Reader navigation icons */
+.nav-btn svg {
+    display: block !important;
+}
+
+/* Ensure icon containers are visible */
+.nav-icon,
+.mobile-nav-icon {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+}

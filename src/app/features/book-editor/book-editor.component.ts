@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { EditorService } from '../../core/services/editor.service';
 import { DataService } from '../../core/services/data.service';
+import { MegaService } from '../../core/services/mega.service';
 import { Book } from '../../shared/models/book.model';
 
 @Component({
@@ -91,25 +92,44 @@ import { Book } from '../../shared/models/book.model';
                <span>{{ isSidebarHidden ? 'Show Pages' : 'Hide Pages' }}</span>
             </button>
 
-            <div class="block-actions header-actions desktop-only">
-              <button (click)="editorService.addBlock('heading')" class="btn-block-action">
-                <svg xmlns="http://www.w3.org/2000/svg" class="icon-xs" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            <div class="collapsible-toolbar desktop-only">
+              <button 
+                (click)="isToolbarExpanded = !isToolbarExpanded" 
+                class="toolbar-toggle"
+                [class.expanded]="isToolbarExpanded"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                 </svg>
-                <span>Heading</span>
+                <span>{{ isToolbarExpanded ? 'Hide' : 'Add Content' }}</span>
               </button>
-              <button (click)="editorService.addBlock('paragraph')" class="btn-block-action">
-                <svg xmlns="http://www.w3.org/2000/svg" class="icon-xs" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
-                </svg>
-                <span>Text</span>
-              </button>
-              <button (click)="editorService.addBlock('image')" class="btn-block-action">
-                <svg xmlns="http://www.w3.org/2000/svg" class="icon-xs" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                <span>Image</span>
-              </button>
+              
+              <div class="toolbar-buttons" [class.expanded]="isToolbarExpanded">
+                <button (click)="editorService.addBlock('heading')" class="btn-block-action">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="icon-xs" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  <span>Heading</span>
+                </button>
+                <button (click)="editorService.addBlock('paragraph')" class="btn-block-action">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="icon-xs" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
+                  </svg>
+                  <span>Text</span>
+                </button>
+                <button (click)="editorService.addBlock('image')" class="btn-block-action">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="icon-xs" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  <span>Image</span>
+                </button>
+                <button (click)="editorService.addBlock('video')" class="btn-block-action">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="icon-xs" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                  <span>Video</span>
+                </button>
+              </div>
             </div>
           </div>
 
@@ -162,6 +182,26 @@ import { Book } from '../../shared/models/book.model';
                       }
                     </div>
                   }
+                  @case ('video') {
+                    <div class="block-video">
+                      @if (block.content) {
+                        <video controls class="video-preview">
+                          <source [src]="block.content" type="video/mp4">
+                          Your browser does not support the video tag.
+                        </video>
+                        <button (click)="editorService.updateBlockContent(block.id, '')" class="btn-remove-video">Remove</button>
+                      } @else {
+                        <div class="video-placeholder" (click)="videoInput.click()">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="icon-lg text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                          </svg>
+                          <span class="upload-text">Click to upload video</span>
+                          <span class="upload-hint">Uploading to Mega.io cloud...</span>
+                          <input #videoInput type="file" class="hidden-input" (change)="onVideoUpload($event, block.id)" accept="video/*" />
+                        </div>
+                      }
+                    </div>
+                  }
                 }
               </div>
             }
@@ -195,7 +235,10 @@ export class BookEditorComponent implements OnInit {
   router = inject(Router);
   editorService = inject(EditorService);
   dataService = inject(DataService);
+  megaService = inject(MegaService);
   isSidebarHidden = true;
+  isToolbarExpanded = false;
+  uploadingVideo = false;
 
   ngOnInit() {
     const bookId = this.route.snapshot.paramMap.get('id');
@@ -230,11 +273,61 @@ export class BookEditorComponent implements OnInit {
   onImageUpload(event: Event, blockId: string) {
     const input = event.target as HTMLInputElement;
     if (input.files?.[0]) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        this.editorService.updateBlockContent(blockId, e.target?.result as string);
-      };
-      reader.readAsDataURL(input.files[0]);
+      const file = input.files[0];
+
+      // Check if Mega.io is configured
+      if (this.megaService.isConfigured()) {
+        const filename = this.megaService.generateFilename(file.name, 'bookora_img');
+        this.megaService.uploadFile(file, filename).subscribe({
+          next: (url) => {
+            this.editorService.updateBlockContent(blockId, url);
+            console.log('Image uploaded to Mega.io:', url);
+          },
+          error: (err) => {
+            console.error('Failed to upload to Mega.io, using base64 fallback:', err);
+            this.uploadImageAsBase64(file, blockId);
+          }
+        });
+      } else {
+        // Fallback to base64 if Mega.io not configured
+        this.uploadImageAsBase64(file, blockId);
+      }
+    }
+  }
+
+  private uploadImageAsBase64(file: File, blockId: string) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      this.editorService.updateBlockContent(blockId, e.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  onVideoUpload(event: Event, blockId: string) {
+    const input = event.target as HTMLInputElement;
+    if (input.files?.[0]) {
+      const file = input.files[0];
+
+      if (!this.megaService.isConfigured()) {
+        alert('Mega.io is not configured. Please add credentials to environment.ts');
+        return;
+      }
+
+      this.uploadingVideo = true;
+      const filename = this.megaService.generateFilename(file.name, 'bookora_video');
+
+      this.megaService.uploadVideo(file).subscribe({
+        next: (url) => {
+          this.editorService.updateBlockContent(blockId, url);
+          this.uploadingVideo = false;
+          console.log('Video uploaded to Mega.io:', url);
+        },
+        error: (err) => {
+          console.error('Failed to upload video to Mega.io:', err);
+          alert('Video upload failed. Please check your Mega.io credentials.');
+          this.uploadingVideo = false;
+        }
+      });
     }
   }
 }

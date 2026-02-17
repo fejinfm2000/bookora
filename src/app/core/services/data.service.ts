@@ -2,6 +2,7 @@ import { Injectable, signal, computed, inject } from '@angular/core';
 import { Book } from '../../shared/models/book.model';
 import { GithubService } from './github.service';
 import { AuthService } from '../auth/auth.service';
+import { NotificationService } from './notification.service';
 import { Observable, forkJoin, of } from 'rxjs';
 import { catchError, map, switchMap, tap } from 'rxjs/operators';
 import { jsPDF } from 'jspdf';
@@ -12,6 +13,7 @@ import { jsPDF } from 'jspdf';
 export class DataService {
     private github = inject(GithubService);
     private auth = inject(AuthService);
+    private notificationService = inject(NotificationService);
 
     // Path to the books index file
     private readonly BOOKS_INDEX_PATH = 'src/assets/data/books.json';
@@ -138,6 +140,16 @@ export class DataService {
                 return of(true);
             })
         ).subscribe({
+            next: () => {
+                // Create notification for new book
+                this.notificationService.create(
+                    'new_book',
+                    'New Book Published!',
+                    `"${book.title}" by ${book.author} is now available`,
+                    `/read/${book.id}`,
+                    book.coverImage
+                );
+            },
             error: (err: any) => console.error('Failed to save book', err)
         });
     }
@@ -233,66 +245,83 @@ export class DataService {
      * Download a book as PDF
      */
     downloadBook(book: Book) {
-        const doc = new jsPDF();
-        let yOffset = 20;
+        const pdf = new jsPDF();
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        const margin = 20;
+        const maxWidth = pageWidth - (margin * 2);
+        let yPosition = margin;
 
-        // Title
-        doc.setFontSize(22);
-        doc.text(book.title, 20, yOffset);
-        yOffset += 10;
+        // Title page
+        pdf.setFontSize(24);
+        pdf.text(book.title, pageWidth / 2, yPosition, { align: 'center' });
+        yPosition += 15;
 
-        // Author
-        doc.setFontSize(14);
-        doc.text(`By ${book.author}`, 20, yOffset);
-        yOffset += 15;
+        pdf.setFontSize(14);
+        pdf.text(`by ${book.author}`, pageWidth / 2, yPosition, { align: 'center' });
+        yPosition += 10;
+
+        pdf.setFontSize(10);
+        pdf.text(book.genre, pageWidth / 2, yPosition, { align: 'center' });
+        yPosition += 20;
 
         // Description
-        doc.setFontSize(12);
-        const splitDescription = doc.splitTextToSize(book.description, 170);
-        doc.text(splitDescription, 20, yOffset);
-        yOffset += (splitDescription.length * 7) + 10;
+        pdf.setFontSize(12);
+        const descLines = pdf.splitTextToSize(book.description, maxWidth);
+        descLines.forEach((line: string) => {
+            if (yPosition > pageHeight - margin) {
+                pdf.addPage();
+                yPosition = margin;
+            }
+            pdf.text(line, margin, yPosition);
+            yPosition += 7;
+        });
 
         // Pages
-        book.pages.forEach((page, index) => {
-            if (yOffset > 250) {
-                doc.addPage();
-                yOffset = 20;
-            } else {
-                yOffset += 10;
-            }
+        book.pages.forEach((page) => {
+            pdf.addPage();
+            yPosition = margin;
 
-            doc.setFontSize(16);
-            doc.text(`Page ${index + 1}`, 20, yOffset);
-            yOffset += 10;
-
-            page.content.forEach(block => {
-                if (yOffset > 270) {
-                    doc.addPage();
-                    yOffset = 20;
+            page.content.forEach((block) => {
+                // Skip video blocks - they can't be embedded in PDFs
+                if (block.type === 'video') {
+                    pdf.setFontSize(10);
+                    pdf.setTextColor(128, 128, 128); // Gray color
+                    pdf.text('[Video content not included in PDF]', margin, yPosition);
+                    pdf.setTextColor(0, 0, 0); // Reset to black
+                    yPosition += 10;
+                    return;
                 }
 
                 if (block.type === 'heading') {
-                    doc.setFontSize(14);
-                    doc.setFont('helvetica', 'bold');
-                    doc.text(block.content, 20, yOffset);
-                    yOffset += 10;
+                    pdf.setFontSize(16);
+                    pdf.setFont('helvetica', 'bold');
+                    const headingLines = pdf.splitTextToSize(block.content, maxWidth);
+                    headingLines.forEach((line: string) => {
+                        if (yPosition > pageHeight - margin) {
+                            pdf.addPage();
+                            yPosition = margin;
+                        }
+                        pdf.text(line, margin, yPosition);
+                        yPosition += 10;
+                    });
+                    pdf.setFont('helvetica', 'normal');
                 } else if (block.type === 'paragraph') {
-                    doc.setFontSize(12);
-                    doc.setFont('helvetica', 'normal');
-                    const lines = doc.splitTextToSize(block.content, 170);
-                    doc.text(lines, 20, yOffset);
-                    yOffset += (lines.length * 7) + 5;
-                } else if (block.type === 'image') {
-                    // For now, we'll just add the image URL or a placeholder if it's base64
-                    doc.setFontSize(10);
-                    doc.setTextColor(150);
-                    doc.text('[Image Content]', 20, yOffset);
-                    yOffset += 10;
-                    doc.setTextColor(0);
+                    pdf.setFontSize(12);
+                    const paraLines = pdf.splitTextToSize(block.content, maxWidth);
+                    paraLines.forEach((line: string) => {
+                        if (yPosition > pageHeight - margin) {
+                            pdf.addPage();
+                            yPosition = margin;
+                        }
+                        pdf.text(line, margin, yPosition);
+                        yPosition += 7;
+                    });
+                    yPosition += 5; // Extra spacing after paragraph
                 }
             });
         });
 
-        doc.save(`${book.title.replace(/\s+/g, '_')}.pdf`);
+        pdf.save(`${book.title.replace(/\s+/g, '_')}.pdf`);
     }
 }

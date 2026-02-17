@@ -5,6 +5,7 @@ import { map, tap, switchMap } from 'rxjs/operators';
 import { Book } from '../../shared/models/book.model';
 import { GithubService } from './github.service';
 import { AuthService } from '../auth/auth.service';
+import { NotificationService } from './notification.service';
 
 export interface FeedItem {
     id: string;
@@ -28,6 +29,7 @@ export class SocialService {
     private http = inject(HttpClient);
     private github = inject(GithubService);
     private auth = inject(AuthService);
+    private notificationService = inject(NotificationService);
 
     private readonly FEED_PATH = 'src/assets/data/feed.json';
 
@@ -129,6 +131,15 @@ export class SocialService {
         this.feed.set(updatedFeed);
         this.feedItemsSubject.next(updatedFeed);
         this.saveFeed(updatedFeed);
+
+        // Create notification for new post
+        this.notificationService.create(
+            'new_post',
+            'New Post',
+            `${newPost.userName} shared something new`,
+            '/explore',
+            newPost.images?.[0]
+        );
     }
 
     deletePost(postId: string) {
