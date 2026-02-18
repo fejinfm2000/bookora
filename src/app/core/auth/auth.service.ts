@@ -1,4 +1,5 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
+import { Router } from '@angular/router';
 import { GithubService } from '../services/github.service';
 import { Observable, from, of } from 'rxjs';
 import { map, catchError, tap, switchMap } from 'rxjs/operators';
@@ -16,6 +17,7 @@ export interface User {
 })
 export class AuthService {
     private githubService = inject(GithubService);
+    private router = inject(Router);
     private readonly USER_data_PATH = 'src/assets/data/users/'; // Directory for user files
 
     // Current user state
@@ -29,6 +31,16 @@ export class AuthService {
                 const parsed = JSON.parse(raw) as User;
                 if (parsed && parsed.email) {
                     this.currentUser.set(parsed);
+                    // If the user returns to the app (or opens a blank route),
+                    // redirect to the library for convenience.
+                    try {
+                        const p = window.location.pathname;
+                        if (p === '/' || p === '/login' || p === '') {
+                            this.router.navigate(['/library']);
+                        }
+                    } catch (e) {
+                        // ignore navigation errors during early bootstrap
+                    }
                 }
             }
         } catch (e) {
