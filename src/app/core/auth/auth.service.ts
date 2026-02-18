@@ -22,12 +22,17 @@ export class AuthService {
     currentUser = signal<User | null>(null);
 
     constructor() {
-        // Try to restore session from localStorage if needed, 
-        // but for now we'll start fresh or maybe store email in localstorage
-        const savedEmail = sessionStorage.getItem('bookora_user_email');
-        if (savedEmail) {
-            // Potentially re-fetch user data here
-            // this.loadUser(savedEmail);
+        // Try to restore user from localStorage so session persists across tabs
+        try {
+            const raw = localStorage.getItem('bookora_user');
+            if (raw) {
+                const parsed = JSON.parse(raw) as User;
+                if (parsed && parsed.email) {
+                    this.currentUser.set(parsed);
+                }
+            }
+        } catch (e) {
+            console.warn('AuthService: failed to restore user from localStorage', e);
         }
     }
 
@@ -42,14 +47,19 @@ export class AuthService {
 
         return this.githubService.getFile<User>(path).pipe(
             map(fileData => {
-                if (!fileData) return false; // User not found
+                if (!fileData) {
+                    console.warn('AuthService.login: user file not found', path);
+                    return false; // User not found
+                }
                 const user = fileData.content;
+                console.debug('AuthService.login: loaded user', { email: user.email, hasPassword: !!user.password });
 
                 if (user.password === password) {
                     this.currentUser.set(user);
-                    sessionStorage.setItem('bookora_user_email', email);
+                    try { localStorage.setItem('bookora_user', JSON.stringify(user)); } catch (e) { /* ignore */ }
                     return true;
                 }
+                console.warn('AuthService.login: password mismatch', { expected: !!user.password, provided: !!password });
                 return false;
             }),
             catchError(err => {
@@ -77,7 +87,7 @@ export class AuthService {
         return this.githubService.saveFile(path, newUser, null, `Create user ${email}`).pipe(
             map(() => {
                 this.currentUser.set(newUser);
-                sessionStorage.setItem('bookora_user_email', email);
+                try { localStorage.setItem('bookora_user', JSON.stringify(newUser)); } catch (e) { /* ignore */ }
                 return true;
             }),
             catchError(err => {
@@ -105,6 +115,7 @@ export class AuthService {
             }),
             map(() => {
                 this.currentUser.set(user);
+                try { localStorage.setItem('bookora_user', JSON.stringify(user)); } catch (e) { /* ignore */ }
                 return true;
             }),
             catchError(() => of(false))
@@ -113,7 +124,7 @@ export class AuthService {
 
     logout() {
         this.currentUser.set(null);
-        sessionStorage.removeItem('bookora_user_email');
+        try { localStorage.removeItem('bookora_user'); } catch (e) { /* ignore */ }
     }
 
     private getEmailFilename(email: string): string {
