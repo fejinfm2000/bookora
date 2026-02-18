@@ -95,12 +95,24 @@ import { jsPDF } from 'jspdf';
                   @if (post.images && post.images.length > 0) {
                     <div class="post-images-grid" [class.multiple]="post.images.length > 1">
                        @for (img of post.images; track img) {
-                         <img [src]="post.imageThumbs && post.imageThumbs.length > 0 && post.imageThumbs[post.images.indexOf(img)] ? post.imageThumbs[post.images.indexOf(img)] : img" class="post-image" />
+                         @if (post.imageThumbs && post.imageThumbs.length > 0 && post.imageThumbs[post.images.indexOf(img)]) {
+                           <img [src]="post.imageThumbs[post.images.indexOf(img)]" class="post-image" />
+                         } @else if (typeof img === 'string' && img.startsWith('data:')) {
+                           <img [src]="img" class="post-image" />
+                         } @else {
+                           <a href="{{img}}" target="_blank" rel="noopener noreferrer" class="post-image-link">View image</a>
+                         }
                        }
                     </div>
                   } @else if (post.image) {
                     <div class="post-image-container">
-                       <img [src]="post.image" class="post-image" />
+                      @if (post.imageThumbs && post.imageThumbs.length > 0 && post.imageThumbs[0]) {
+                        <img [src]="post.imageThumbs[0]" class="post-image" />
+                      } @else if (typeof post.image === 'string' && post.image.startsWith('data:')) {
+                        <img [src]="post.image" class="post-image" />
+                      } @else {
+                        <a href="{{post.image}}" target="_blank" rel="noopener noreferrer" class="post-image-link">View image</a>
+                      }
                     </div>
                   }
                </div>
