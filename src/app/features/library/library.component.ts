@@ -64,6 +64,7 @@ import { SkeletonComponent } from '../../shared/components/skeleton/skeleton.com
 
         <div class="filter-controls">
           <select 
+            [value]="dataService.selectedGenre()"
             (change)="onGenreChange($event)"
             class="filter-select"
           >

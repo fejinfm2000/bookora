@@ -96,7 +96,7 @@ export class FeedUploadComponent {
   megaService = inject(MegaService);
 
   textContent = signal('');
-  images = signal<string[]>(['']);
+  images = signal<string[]>([]);
 
   onDeviceUpload(event: Event) {
     const input = event.target as HTMLInputElement;

@@ -191,13 +191,18 @@ import { Book } from '../../shared/models/book.model';
                         </video>
                         <button (click)="editorService.updateBlockContent(block.id, '')" class="btn-remove-video">Remove</button>
                       } @else {
-                        <div class="video-placeholder" (click)="videoInput.click()">
-                          <svg xmlns="http://www.w3.org/2000/svg" class="icon-lg text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                          </svg>
-                          <span class="upload-text">Click to upload video</span>
-                          <span class="upload-hint">Uploading to Mega.io cloud...</span>
-                          <input #videoInput type="file" class="hidden-input" (change)="onVideoUpload($event, block.id)" accept="video/*" />
+                        <div class="video-placeholder" [class.uploading]="uploadingVideo" (click)="!uploadingVideo && videoInput.click()">
+                          @if (uploadingVideo) {
+                            <div class="upload-spinner"></div>
+                            <span class="upload-text">Uploading to Mega.io...</span>
+                          } @else {
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon-lg text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                            <span class="upload-text">Click to upload video</span>
+                            <span class="upload-hint">Uploading to Mega.io cloud...</span>
+                          }
+                          <input #videoInput type="file" class="hidden-input" (change)="onVideoUpload($event, block.id)" accept="video/*" [disabled]="uploadingVideo" />
                         </div>
                       }
                     </div>

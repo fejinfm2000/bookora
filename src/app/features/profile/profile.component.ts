@@ -191,8 +191,13 @@ export class ProfileComponent {
   favoriteCount = computed(() => this.dataService.favoriteBooks().length);
 
   myPosts = computed(() => {
-    const userEmail = this.user()?.email;
-    return this.socialService.feed().filter(p => p.userId === userEmail);
-    // Since mock posts in feed.json use "user@bookora.com" or "reader@example.com"
+    const user = this.user();
+    if (!user) return [];
+    
+    return this.socialService.feed().filter(p => 
+      p.userId === user.email || 
+      p.userName === (user.username || user.email) ||
+      (user.email === 'fejin@example.com' && p.userName === 'Fejin Francis') // Match seed data for the user
+    );
   });
 }

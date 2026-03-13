@@ -51,6 +51,16 @@ export class AuthService {
     isAuthenticated = computed(() => !!this.currentUser());
 
     /**
+     * Strip password from user object before storing in memory or localStorage.
+     * The password only lives in the GitHub JSON file for verification.
+     */
+    private stripPassword(user: User): User {
+        const safe = { ...user };
+        delete safe.password;
+        return safe;
+    }
+
+    /**
      * Login by fetching user file and checking password
      */
     login(email: string, password: string): Observable<boolean> {
@@ -67,8 +77,9 @@ export class AuthService {
                 console.debug('AuthService.login: loaded user', { email: user.email, hasPassword: !!user.password });
 
                 if (user.password === password) {
-                    this.currentUser.set(user);
-                    try { localStorage.setItem('bookora_user', JSON.stringify(user)); } catch (e) { /* ignore */ }
+                    const safeUser = this.stripPassword(user);
+                    this.currentUser.set(safeUser);
+                    try { localStorage.setItem('bookora_user', JSON.stringify(safeUser)); } catch (e) { /* ignore */ }
                     return true;
                 }
                 console.warn('AuthService.login: password mismatch', { expected: !!user.password, provided: !!password });
@@ -88,7 +99,8 @@ export class AuthService {
         const filename = this.getEmailFilename(email);
         const path = `${this.USER_data_PATH}${filename}`;
 
-        const newUser: User = {
+        // Store password in the GitHub file for auth verification
+        const userWithPassword: User = {
             email,
             password,
             username: email.split('@')[0],
@@ -96,10 +108,12 @@ export class AuthService {
             created_books: []
         };
 
-        return this.githubService.saveFile(path, newUser, null, `Create user ${email}`).pipe(
+        return this.githubService.saveFile(path, userWithPassword, null, `Create user ${email}`).pipe(
             map(() => {
-                this.currentUser.set(newUser);
-                try { localStorage.setItem('bookora_user', JSON.stringify(newUser)); } catch (e) { /* ignore */ }
+                // Don't keep the password in memory or localStorage
+                const safeUser = this.stripPassword(userWithPassword);
+                this.currentUser.set(safeUser);
+                try { localStorage.setItem('bookora_user', JSON.stringify(safeUser)); } catch (e) { /* ignore */ }
                 return true;
             }),
             catchError(err => {
@@ -116,18 +130,17 @@ export class AuthService {
         const filename = this.getEmailFilename(user.email);
         const path = `${this.USER_data_PATH}${filename}`;
 
-        // We need the SHA to update, so we fetch first? 
-        // Or we can rely on GithubService to handle SHA fetching if we implemented it that way?
-        // Our GithubService expects SHA.
-        // Let's first fetch to get SHA.
         return this.githubService.getFile<User>(path).pipe(
             switchMap(fileData => {
                 if (!fileData) return of(false);
-                return this.githubService.saveFile(path, user, fileData.sha, `Update user ${user.email}`);
+                // Preserve the existing password in the stored file
+                const userToSave = { ...user, password: fileData.content.password };
+                return this.githubService.saveFile(path, userToSave, fileData.sha, `Update user ${user.email}`);
             }),
             map(() => {
-                this.currentUser.set(user);
-                try { localStorage.setItem('bookora_user', JSON.stringify(user)); } catch (e) { /* ignore */ }
+                const safeUser = this.stripPassword(user);
+                this.currentUser.set(safeUser);
+                try { localStorage.setItem('bookora_user', JSON.stringify(safeUser)); } catch (e) { /* ignore */ }
                 return true;
             }),
             catchError(() => of(false))

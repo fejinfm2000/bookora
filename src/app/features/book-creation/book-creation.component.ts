@@ -37,7 +37,11 @@ import { Book } from '../../shared/models/book.model';
                   formControlName="title"
                   placeholder="Enter a catchy title"
                   class="field-input"
+                  [class.field-error]="bookForm.get('title')?.invalid && bookForm.get('title')?.touched"
                 />
+                @if (bookForm.get('title')?.invalid && bookForm.get('title')?.touched) {
+                  <span class="error-msg">Title is required.</span>
+                }
               </div>
 
               <div class="form-row">
@@ -48,7 +52,11 @@ import { Book } from '../../shared/models/book.model';
                     formControlName="author"
                     placeholder="Author name"
                     class="field-input"
+                    [class.field-error]="bookForm.get('author')?.invalid && bookForm.get('author')?.touched"
                   />
+                  @if (bookForm.get('author')?.invalid && bookForm.get('author')?.touched) {
+                    <span class="error-msg">Author is required.</span>
+                  }
                 </div>
                 <div class="form-field">
                   <label class="field-label">Genre</label>

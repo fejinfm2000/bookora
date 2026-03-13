@@ -1,8 +1,9 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, HostListener, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ThemeService } from '../../core/services/theme.service';
 import { AuthService } from '../../core/auth/auth.service';
 import { NotificationService } from '../../core/services/notification.service';
+import { DataService } from '../../core/services/data.service';
 import { RouterLink, Router } from '@angular/router';
 
 @Component({
@@ -20,6 +21,8 @@ import { RouterLink, Router } from '@angular/router';
           type="text" 
           placeholder="Search books, authors, genres..." 
           class="search-input"
+          [value]="dataService.searchQuery()"
+          (input)="onSearch($event)"
         />
         <svg xmlns="http://www.w3.org/2000/svg" class="search-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -27,10 +30,21 @@ import { RouterLink, Router } from '@angular/router';
       </div>
 
       <div class="header-actions">
+        <!-- Mobile Search Toggle -->
+        <button 
+          (click)="toggleMobileSearch()"
+          class="icon-btn mobile-only"
+          title="Search"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="icon-md" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </button>
+
         <!-- Notification Bell -->
         <div class="notification-container">
           <button 
-            (click)="toggleNotifications()"
+            (click)="toggleNotifications($event)"
             class="icon-btn notification-btn"
             title="Notifications"
           >
@@ -44,7 +58,7 @@ import { RouterLink, Router } from '@angular/router';
 
           <!-- Notification Dropdown -->
           @if (showNotifications()) {
-            <div class="notification-dropdown">
+            <div class="notification-dropdown" (click)="$event.stopPropagation()">
               <div class="notification-header">
                 <h3>Notifications</h3>
                 @if (notificationService.hasUnread()) {
@@ -132,6 +146,25 @@ import { RouterLink, Router } from '@angular/router';
           </div>
         </div>
       </div>
+
+      <!-- Mobile Search Overlay -->
+      @if (showMobileSearch()) {
+        <div class="mobile-search-overlay mobile-only">
+          <input 
+            type="text" 
+            placeholder="Search books, authors, genres..." 
+            class="search-input"
+            [value]="dataService.searchQuery()"
+            (input)="onSearch($event)"
+            autofocus
+          />
+          <button (click)="toggleMobileSearch()" class="icon-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      }
     </header>
   `,
   styles: [`
@@ -162,7 +195,7 @@ import { RouterLink, Router } from '@angular/router';
       top: calc(100% + 8px);
       right: 0;
       width: 380px;
-      max-width: 90vw;
+      max-width: calc(100vw - 1rem);
       background: var(--bg-card);
       border-radius: 12px;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
@@ -323,9 +356,30 @@ export class HeaderComponent {
   themeService = inject(ThemeService);
   authService = inject(AuthService);
   notificationService = inject(NotificationService);
+  dataService = inject(DataService);
   router = inject(Router);
+  private el = inject(ElementRef);
 
   showNotifications = signal(false);
+  showMobileSearch = signal(false);
+
+  /** Close dropdown when clicking outside the header component */
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    if (this.showNotifications() && !this.el.nativeElement.contains(event.target)) {
+      this.showNotifications.set(false);
+    }
+    // Also close mobile search on click outside if desired, but maybe keep it open
+  }
+
+  onSearch(event: Event) {
+    const value = (event.target as HTMLInputElement).value;
+    this.dataService.searchQuery.set(value);
+  }
+
+  toggleMobileSearch(): void {
+    this.showMobileSearch.update(v => !v);
+  }
 
   getUserInitials(): string {
     const user = this.authService.currentUser();
@@ -334,7 +388,8 @@ export class HeaderComponent {
     return name.substring(0, 2).toUpperCase();
   }
 
-  toggleNotifications(): void {
+  toggleNotifications(event: MouseEvent): void {
+    event.stopPropagation(); // prevent doc click from immediately closing
     this.showNotifications.update(v => !v);
   }
 

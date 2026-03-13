@@ -1,4 +1,4 @@
-import { Component, signal, inject, OnInit } from '@angular/core';
+﻿import { Component, signal, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SocialService, FeedItem } from '../../core/services/social.service';
 import { DataService } from '../../core/services/data.service';
@@ -94,9 +94,9 @@ import { jsPDF } from 'jspdf';
                   <!-- Images Grid -->
                   @if (post.images && post.images.length > 0) {
                     <div class="post-images-grid" [class.multiple]="post.images.length > 1">
-                       @for (img of post.images; track img) {
-                         @if (post.imageThumbs && post.imageThumbs.length > 0 && post.imageThumbs[post.images.indexOf(img)]) {
-                           <img [src]="post.imageThumbs[post.images.indexOf(img)]" class="post-image" />
+                       @for (img of post.images; track img; let idx = $index) {
+                         @if (post.imageThumbs && post.imageThumbs.length > idx && post.imageThumbs[idx]) {
+                           <img [src]="post.imageThumbs[idx]" class="post-image" />
                          } @else if (typeof img === 'string' && img.startsWith('data:')) {
                            <img [src]="img" class="post-image" />
                          } @else {
@@ -130,7 +130,7 @@ import { jsPDF } from 'jspdf';
                      </svg>
                       <span>{{ post.likes }}</span>
                     </button>
-                    <button (click)="socialService.addComment(post.id)" class="action-btn">
+                    <button (click)="toggleCommentInput(post.id)" class="action-btn" [class.liked]="commentingPostId() === post.id">
                       <svg xmlns="http://www.w3.org/2000/svg" class="icon-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                       </svg>
@@ -322,6 +322,10 @@ export class ExploreComponent implements OnInit {
   editingPostId = signal<string | null>(null);
   editContent = '';
 
+  // Comment state
+  commentingPostId = signal<string | null>(null);
+  commentText = '';
+
   ngOnInit() {
     this.socialService.refreshFeed();
   }
@@ -350,6 +354,24 @@ export class ExploreComponent implements OnInit {
     if (this.editContent.trim()) {
       this.socialService.updatePost(postId, this.editContent);
       this.cancelEdit();
+    }
+  }
+
+  toggleCommentInput(postId: string) {
+    if (this.commentingPostId() === postId) {
+      this.commentingPostId.set(null);
+      this.commentText = '';
+    } else {
+      this.commentingPostId.set(postId);
+      this.commentText = '';
+    }
+  }
+
+  submitComment(postId: string) {
+    if (this.commentText.trim()) {
+      this.socialService.addComment(postId);
+      this.commentingPostId.set(null);
+      this.commentText = '';
     }
   }
 

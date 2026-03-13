@@ -22,16 +22,17 @@ import { Book } from '../../shared/models/book.model';
           <span class="mobile-hidden">Back to Library</span>
         </button>
 
-        <button 
-          *ngIf="book()"
-          (click)="dataService.downloadBook(book()!)"
-          class="back-btn-premium download-btn"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" class="icon-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-          </svg>
-          <span class="mobile-hidden">Download Book</span>
-        </button>
+        @if (book()) {
+          <button 
+            (click)="dataService.downloadBook(book()!)"
+            class="back-btn-premium download-btn"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            <span class="mobile-hidden">Download Book</span>
+          </button>
+        }
       </div>
 
       <!-- Book Viewport with Touch Support -->
@@ -96,7 +97,9 @@ import { Book } from '../../shared/models/book.model';
                 <p class="cover-author">{{ book()?.author }}</p>
               </div>
             }
-            <div class="page-number-left" *ngIf="currentPageIndex() > 0">{{ currentPageIndex() }}</div>
+            @if (currentPageIndex() > 0) {
+              <div class="page-number-left">{{ currentPageIndex() }}</div>
+            }
           </div>
 
           <!-- Right Side (Current page) -->
