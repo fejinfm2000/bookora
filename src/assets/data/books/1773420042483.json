@@ -14,7 +14,13 @@
     {
       "id": "d9of9a",
       "pageNumber": 1,
-      "content": []
+      "content": [
+        {
+          "id": "n1ofni",
+          "type": "heading",
+          "content": ""
+        }
+      ]
     }
   ]
 }
