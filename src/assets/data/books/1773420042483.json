@@ -1,0 +1,14 @@
+{
+  "id": "1773420042483",
+  "title": "my book",
+  "author": "Fejin",
+  "genre": "Mystery",
+  "description": "Hi my book",
+  "coverImage": "https://picsum.photos/seed/1773420042483/400/600",
+  "pageCount": 0,
+  "viewCount": 0,
+  "downloadCount": 0,
+  "createdAt": "2026-03-13T16:40:42.483Z",
+  "updatedAt": "2026-03-13T16:40:42.483Z",
+  "pages": []
+}
