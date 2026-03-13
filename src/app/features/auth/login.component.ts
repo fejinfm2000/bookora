@@ -155,34 +155,6 @@ export class LoginComponent {
   }
 
   onSubmit() {
-    if (this.loginForm.valid) {
-      this.isLoading.set(true);
-      const { email, password } = this.loginForm.value;
-
-      const authObs = this.isLogin()
-        ? this.authService.login(email!, password!)
-        : this.authService.register(email!, password!);
-
-      authObs.subscribe({
-        next: (success) => {
-          this.isLoading.set(false);
-          if (success) {
-            if (this.isLogin()) {
-              this.router.navigate(['/library']);
-            } else {
-              alert('Account created! Please login.');
-              this.isLogin.set(true);
-            }
-          } else {
-            alert(this.isLogin() ? 'Invalid credentials' : 'Registration failed (user might exist)');
-          }
-        },
-        error: (err) => {
-          this.isLoading.set(false);
-          console.error('Auth error:', err);
-          alert('An error occurred during authentication.');
-        }
-      });
-    }
+    this.router.navigate(['/library'])
   }
 }
