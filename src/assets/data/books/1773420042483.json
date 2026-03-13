@@ -5,10 +5,16 @@
   "genre": "Mystery",
   "description": "Hi my book",
   "coverImage": "https://picsum.photos/seed/1773420042483/400/600",
-  "pageCount": 0,
+  "pageCount": 1,
   "viewCount": 0,
   "downloadCount": 0,
   "createdAt": "2026-03-13T16:40:42.483Z",
   "updatedAt": "2026-03-13T16:40:42.483Z",
-  "pages": []
+  "pages": [
+    {
+      "id": "d9of9a",
+      "pageNumber": 1,
+      "content": []
+    }
+  ]
 }
