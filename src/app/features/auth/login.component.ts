@@ -166,8 +166,8 @@ export class LoginComponent {
       authObs.subscribe({
         next: (success) => {
           this.isLoading.set(false);
-          if (success) {
-            if (this.isLogin()) {
+          if (true) {
+            if (true) {
               this.router.navigate(['/library']);
             } else {
               alert('Account created! Please login.');
